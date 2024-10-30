@@ -61,6 +61,8 @@ export EnergyBalance
 export CumulativePowerCapacity
 export CumulativeEnergyCapacity
 
+## ##
+export set_technology_model!
 
 #remove later, just for testing
 export objective_function!

@@ -53,6 +53,7 @@ end
 
 function set_technology_model!(
     template::InvestmentModelTemplate,
+    names::Vector{String},
     component_type::Type{<:PSIP.Technology},
     investment_formulation::Type{<:InvestmentTechnologyFormulation},
     operations_formulation::Type{<:OperationsTechnologyFormulation},
@@ -60,6 +61,7 @@ function set_technology_model!(
 )
     set_technology_model!(
         template,
+        names,
         TechnologyModel(component_type, investment_formulation, operations_formulation, feasibility_formulation),
     )
     return
@@ -67,6 +69,7 @@ end
 
 function set_technology_model!(
     template::InvestmentModelTemplate,
+    names::Vector{String},
     model::TechnologyModel{
         <:PSIP.Technology,
         <:InvestmentTechnologyFormulation,
@@ -74,6 +77,20 @@ function set_technology_model!(
         <:FeasibilityTechnologyFormulation
     },
 )
-    _set_model!(template.technologies, model)
+    _set_model!(template.technology_models, names, model)
+    return
+end
+
+function set_technology_model!(
+    template::InvestmentModelTemplate,
+    names::Vector{String},
+    model::TechnologyModel{
+        <:GenericTransportTechnology,
+        <:InvestmentTechnologyFormulation,
+        <:OperationsTechnologyFormulation,
+        <:FeasibilityTechnologyFormulation
+    },
+)
+    _set_model!(template.branch_models, names, model)
     return
 end

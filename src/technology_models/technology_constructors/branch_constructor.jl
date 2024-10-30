@@ -7,7 +7,7 @@ function construct_technologies!(
     technology_model::TechnologyModel{T, B, C, D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: PSIP.ACTransportTechnology,
+    T <: GenericTransportTechnology,
     B <: ContinuousInvestment,
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,
@@ -39,7 +39,7 @@ function construct_technologies!(
     technology_model::TechnologyModel{T, B, C, D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: PSIP.ACTransportTechnology,
+    T <: GenericTransportTechnology,
     B <: ContinuousInvestment,
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,
@@ -70,7 +70,7 @@ function construct_technologies!(
     technology_model::TechnologyModel{T, B, C, D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: PSIP.ACTransportTechnology,
+    T <: GenericTransportTechnology,
     B <: ContinuousInvestment,
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,
@@ -96,7 +96,7 @@ function construct_technologies!(
     technology_model::TechnologyModel{T, B, C, D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: PSIP.ACTransportTechnology,
+    T <: GenericTransportTechnology,
     B <: ContinuousInvestment,
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,
@@ -127,7 +127,7 @@ function construct_technologies!(
     technology_model::TechnologyModel{T, B, C, D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: PSIP.ACTransportTechnology,
+    T <: GenericTransportTechnology,
     B <: ContinuousInvestment,
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,
@@ -159,7 +159,7 @@ function construct_technologies!(
     technology_model::TechnologyModel{T, B, C, D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: PSIP.ACTransportTechnology,
+    T <: GenericTransportTechnology,
     B <: ContinuousInvestment,
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,

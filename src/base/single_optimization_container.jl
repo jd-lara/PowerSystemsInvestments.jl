@@ -990,7 +990,7 @@ function build_model!(
     branch_names = collect(values(template.branch_models))
     branch_templates = collect(keys(template.branch_models))
     for (i, name_list) in enumerate(branch_names)
-        branch_model = branch_templates[i]
+        branch_model= branch_templates[i]
         @debug "Building Arguments for $(get_technology_type(branch_model)) with $(get_investment_formulation(branch_model)) formulation" _group =
             LOG_GROUP_OPTIMIZATION_CONTAINER
         TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(get_technology_type(branch_model))" begin

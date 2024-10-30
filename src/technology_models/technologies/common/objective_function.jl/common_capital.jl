@@ -22,7 +22,7 @@ function add_capital_cost!(
     devices::Union{Vector{T}, IS.FlattenIteratorWrapper{T}},
     ::V,
     tech_model::String,
-) where {T<:PSIP.ACTransportTechnology,U<:BuildCapacity,V<:ContinuousInvestment}
+) where {T<:GenericTransportTechnology,U<:BuildCapacity,V<:ContinuousInvestment}
     for d in devices
         capital_cost_data = PSIP.get_capital_cost(d)
         _add_cost_to_objective!(container, U(), d, capital_cost_data, V(), tech_model)

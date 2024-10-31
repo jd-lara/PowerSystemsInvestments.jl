@@ -1,5 +1,87 @@
 module PowerSystemsInvestments
 
+### Exports ###
+
+# Base models
+export InvestmentModel
+export InvestmentModelTemplate
+export TransportModel
+export OptimizationProblemResults
+
+### Technology Models ###
+export TechnologyModel
+
+### Capital Model ###
+export DiscountedCashFlow
+export AggregateOperatingCost
+export RepresentativePeriods
+
+### Operation Model ###
+export AggregateOperatingCost
+export ClusteredRepresentativeDays
+
+### Investment Formulations ###
+export ContinuousInvestment
+export IntegerInvestment
+
+### Operation Formulations ###
+export BasicDispatch
+export BasicDispatchFeasibility
+
+### Transport Formulations ###
+export SingleRegionBalanceModel
+export MultiRegionBalanceModel
+
+### Variables ###
+export BuildCapacity
+export ActivePowerVariable
+export BuildEnergyCapacity
+export BuildPowerCapacity
+export ActiveInPowerVariable
+export ActiveOutPowerVariable
+export EnergyVariable
+
+### Expressions ###
+export CumulativeCapacity
+export CapitalCost
+export TotalCapitalCost
+export FixedOperationModelCost
+export VariableOMCost
+export EnergyBalance
+export CumulativePowerCapacity
+export CumulativeEnergyCapacity
+
+### Functions ###
+# methods
+export build!
+# Template exports
+export set_technology_model!
+# Model Exports
+export solve!
+export get_initial_conditions
+export serialize_problem
+export serialize_results
+#Results interfaces
+export read_variable
+export read_parameter
+export read_aux_variables
+export read_duals
+export read_optimizer_stats
+export read_expression
+export get_variable
+export get_constraint
+export get_parameter
+export get_expression
+
+using DocStringExtensions
+
+@template (FUNCTIONS, METHODS) = """
+                                 $(TYPEDSIGNATURES)
+                                 $(DOCSTRING)
+                                 """
+
+#### Imports ###
+
 import InfrastructureSystems
 import PowerSystems
 import JuMP
@@ -26,61 +108,6 @@ const PM = PowerModels
 const PNM = PowerNetworkMatrices
 const MOPFM = MOI.FileFormats.Model
 
-### Exports ###
-export InvestmentModel
-export InvestmentModelTemplate
-export TransportModel
-export OptimizationProblemResults
-
-### Capital Model
-export DiscountedCashFlow
-export AggregateOperatingCost
-export RepresentativePeriods
-
-export SingleRegionBalanceModel
-export MultiRegionBalanceModel
-
-## Variables ##
-export BuildCapacity
-export ActivePowerVariable
-export BuildEnergyCapacity
-export BuildPowerCapacity
-export ActiveInPowerVariable
-export ActiveOutPowerVariable
-export EnergyVariable
-
-## Expressions ##
-export CumulativeCapacity
-export CapitalCost
-export TotalCapitalCost
-export FixedOperationModelCost
-export VariableOMCost
-export SupplyTotal
-export DemandTotal
-export EnergyBalance
-export CumulativePowerCapacity
-export CumulativeEnergyCapacity
-
-## ##
-export set_technology_model!
-
-#remove later, just for testing
-export objective_function!
-export add_expression!
-export add_to_expression!
-
-using DocStringExtensions
-
-# methods
-export build!
-export solve!
-
-@template (FUNCTIONS, METHODS) = """
-                                 $(TYPEDSIGNATURES)
-                                 $(DOCSTRING)
-                                 """
-
-#### Imports ###
 # DS
 import DataStructures: OrderedDict, Deque, SortedDict
 

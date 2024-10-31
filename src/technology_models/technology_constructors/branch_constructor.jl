@@ -77,9 +77,7 @@ function construct_technologies!(
 }
 
     #TODO: Port get_available_component functions from PSY
-    #devices = PSIP.get_technologies(T, p)
     devices = [PSIP.get_technology(T, p, n) for n in names]
-    #add_expression!(container, SupplyTotal(), devices, C())
 
     #convert technology model to string for container metadata
     tech_model = IS.strip_module_name(B)

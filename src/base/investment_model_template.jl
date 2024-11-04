@@ -6,6 +6,7 @@ mutable struct InvestmentModelTemplate <: AbstractInvestmentModelTemplate
     feasibility_model::FeasibilityModel
     transport_model::TransportModel{<:AbstractTransportAggregation}
     technology_models::Dict # Type to be refined later
+    branch_models::Dict # rename?
 
     function InvestmentModelTemplate(
         capital_model::CapitalCostModel,
@@ -13,7 +14,7 @@ mutable struct InvestmentModelTemplate <: AbstractInvestmentModelTemplate
         feasibility_model::FeasibilityModel,
         transport_model::TransportModel{T},
     ) where {T <: AbstractTransportAggregation}
-        new(capital_model, operation_model, feasibility_model, transport_model, Dict())
+        new(capital_model, operation_model, feasibility_model, transport_model, Dict(), Dict())
     end
 end
 
@@ -29,7 +30,8 @@ InvestmentModelTemplate(::Type{T}) where {T <: AbstractTransportAggregation} =
     InvestmentModelTemplate(TransportModel(T))
 InvestmentModelTemplate() = InvestmentModelTemplate(SingleRegionPowerModel)
 
-get_technology_models(template::InvestmentModelTemplate) = template.technologies
+get_technology_models(template::InvestmentModelTemplate) = template.technology_models
+get_branch_models(template::InvestmentModelTemplate) = template.branch_models
 get_transport_model(template::InvestmentModelTemplate) = template.transport_model
 get_transport_formulation(template::InvestmentModelTemplate) =
     get_transport_formulation(get_transport_model(template))
@@ -51,6 +53,7 @@ end
 
 function set_technology_model!(
     template::InvestmentModelTemplate,
+    names::Vector{String},
     component_type::Type{<:PSIP.Technology},
     investment_formulation::Type{<:InvestmentTechnologyFormulation},
     operations_formulation::Type{<:OperationsTechnologyFormulation},
@@ -58,6 +61,7 @@ function set_technology_model!(
 )
     set_technology_model!(
         template,
+        names,
         TechnologyModel(component_type, investment_formulation, operations_formulation, feasibility_formulation),
     )
     return
@@ -65,6 +69,7 @@ end
 
 function set_technology_model!(
     template::InvestmentModelTemplate,
+    names::Vector{String},
     model::TechnologyModel{
         <:PSIP.Technology,
         <:InvestmentTechnologyFormulation,
@@ -72,6 +77,20 @@ function set_technology_model!(
         <:FeasibilityTechnologyFormulation
     },
 )
-    _set_model!(template.technologies, model)
+    _set_model!(template.technology_models, names, model)
+    return
+end
+
+function set_technology_model!(
+    template::InvestmentModelTemplate,
+    names::Vector{String},
+    model::TechnologyModel{
+        <:GenericTransportTechnology,
+        <:InvestmentTechnologyFormulation,
+        <:OperationsTechnologyFormulation,
+        <:FeasibilityTechnologyFormulation
+    },
+)
+    _set_model!(template.branch_models, names, model)
     return
 end

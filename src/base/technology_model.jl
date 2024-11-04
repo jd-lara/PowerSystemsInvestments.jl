@@ -12,6 +12,7 @@ end
 
 function _set_model!(
     dict::Dict,
+    names::Vector{String},
     model::TechnologyModel{D, A, B, C},
 ) where {
     D <: PSIP.Technology,
@@ -19,11 +20,12 @@ function _set_model!(
     B <: OperationsTechnologyFormulation,
     C <: FeasibilityTechnologyFormulation,
 }
-    key = Symbol(D)
+    #key = Symbol(model)
+    key = model
     if haskey(dict, key)
         @warn "Overwriting $(D) existing model"
     end
-    dict[key] = model
+    dict[key] = names
     return
 end
 

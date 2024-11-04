@@ -15,6 +15,7 @@ const PSINV = PowerSystemsInvestments
 const PSY = PowerSystems
 
 include("test_utils/test_data.jl")
+include("test_utils/model_checks.jl")
 
 import Aqua
 Aqua.test_unbound_args(PowerSystemsInvestments)

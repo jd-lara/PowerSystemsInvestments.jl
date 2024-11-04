@@ -1,12 +1,12 @@
 #! format: off
-get_variable_upper_bound(::BuildCapacity, d::PSIP.ACTransportTechnology, ::InvestmentTechnologyFormulation) = PSIP.get_maximum_new_capacity(d)
-get_variable_lower_bound(::BuildCapacity, d::PSIP.ACTransportTechnology, ::InvestmentTechnologyFormulation) = 0.0
-get_variable_binary(::BuildCapacity, d::PSIP.ACTransportTechnology, ::ContinuousInvestment) = false
+get_variable_upper_bound(::BuildCapacity, d::GenericTransportTechnology, ::InvestmentTechnologyFormulation) = PSIP.get_maximum_new_capacity(d)
+get_variable_lower_bound(::BuildCapacity, d::GenericTransportTechnology, ::InvestmentTechnologyFormulation) = 0.0
+get_variable_binary(::BuildCapacity, d::GenericTransportTechnology, ::ContinuousInvestment) = false
 
-get_variable_lower_bound(::ActivePowerVariable, d::PSIP.ACTransportTechnology, ::OperationsTechnologyFormulation) = 0.0
-get_variable_upper_bound(::ActivePowerVariable, d::PSIP.ACTransportTechnology, ::OperationsTechnologyFormulation) = nothing
+get_variable_lower_bound(::ActivePowerVariable, d::GenericTransportTechnology, ::OperationsTechnologyFormulation) = 0.0
+get_variable_upper_bound(::ActivePowerVariable, d::GenericTransportTechnology, ::OperationsTechnologyFormulation) = nothing
 
-get_variable_multiplier(::ActivePowerVariable, ::Type{PSIP.ACTransportTechnology{PSY.Branch}}) = 1.0
+get_variable_multiplier(::ActivePowerVariable, ::Type{GenericTransportTechnology}) = 1.0
 
 #! format: on
 
@@ -16,7 +16,7 @@ function get_default_time_series_names(
     ::Type{W},
     ::Type{X},
 ) where {
-    U<:PSIP.ACTransportTechnology,
+    U<:GenericTransportTechnology,
     V<:InvestmentTechnologyFormulation,
     W<:OperationsTechnologyFormulation,
     X<:FeasibilityTechnologyFormulation,
@@ -30,7 +30,7 @@ function get_default_attributes(
     ::Type{W},
     ::Type{X},
 ) where {
-    U<:PSIP.ACTransportTechnology,
+    U<:GenericTransportTechnology,
     V<:InvestmentTechnologyFormulation,
     W<:OperationsTechnologyFormulation,
     X<:FeasibilityTechnologyFormulation,
@@ -51,7 +51,7 @@ function add_expression!(
 ) where {
     T<:CumulativeCapacity,
     U<:Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
-} where {D<:PSIP.ACTransportTechnology}
+} where {D<:GenericTransportTechnology}
     #@assert !isempty(devices)
     time_steps = get_time_steps_investments(container)
     binary = false
@@ -97,7 +97,7 @@ function add_to_expression!(
     T<:EnergyBalance,
     U<:Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
     V<:MultiRegionBalanceModel
-} where {D<:PSIP.ACTransportTechnology}
+} where {D<:GenericTransportTechnology}
     #@assert !isempty(devices)
     time_steps = get_time_steps(container)
     #binary = false
@@ -138,7 +138,7 @@ function add_constraints!(
     T<:ActivePowerLimitsConstraint,
     U<:Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
     V<:ActivePowerVariable,
-} where {D<:PSIP.ACTransportTechnology}
+} where {D<:GenericTransportTechnology}
     time_steps = get_time_steps(container)
     # Hard Code Mapping #
     # TODO: Remove
@@ -190,7 +190,7 @@ function add_constraints!(
     U<:Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
     V<:CumulativeCapacity,
     #X <: PM.AbstractPowerModel,
-} where {D<:PSIP.ACTransportTechnology}
+} where {D<:GenericTransportTechnology}
     time_steps = get_time_steps_investments(container)
 
     device_names = PSIP.get_name.(devices)
@@ -200,8 +200,8 @@ function add_constraints!(
 
     for d in devices
         name = PSIP.get_name(d)
-        max_capacity = PSIP.maximum_new_capacity(d)
-        init_cap = PSIP.existing_line_capacity(d)
+        max_capacity = PSIP.get_maximum_new_capacity(d)
+        init_cap = PSIP.get_existing_line_capacity(d)
         for t in time_steps
             con_ub[name, t] = JuMP.@constraint(
                 get_jump_model(container),
@@ -220,7 +220,7 @@ function objective_function!(
     #DeviceModel{T, U},
     formulation::BasicDispatch, #Type{<:PM.AbstractPowerModel},
     tech_model::String,
-) where {T<:PSIP.ACTransportTechnology}#, U <: ActivePowerVariable}
+) where {T<:GenericTransportTechnology}#, U <: ActivePowerVariable}
     add_variable_cost!(container, ActivePowerVariable(), devices, formulation, tech_model) #U()
     #add_start_up_cost!(container, StartVariable(), devices, U())
     #add_shut_down_cost!(container, StopVariable(), devices, U())
@@ -235,7 +235,7 @@ function objective_function!(
     #DeviceModel{T, U},
     formulation::ContinuousInvestment, #Type{<:PM.AbstractPowerModel},
     tech_model::String,
-) where {T<:PSIP.ACTransportTechnology}#, U <: BuildCapacity}
+) where {T<:GenericTransportTechnology}#, U <: BuildCapacity}
     add_capital_cost!(container, BuildCapacity(), devices, formulation, tech_model) #U()
     #add_fixed_om_cost!(container, CumulativeCapacity(), devices, formulation, tech_model)
     return

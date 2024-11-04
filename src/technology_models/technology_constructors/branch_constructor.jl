@@ -7,7 +7,7 @@ function construct_technologies!(
     technology_model::TechnologyModel{T, B, C, D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: PSIP.ACTransportTechnology,
+    T <: GenericTransportTechnology,
     B <: ContinuousInvestment,
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,
@@ -39,7 +39,7 @@ function construct_technologies!(
     technology_model::TechnologyModel{T, B, C, D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: PSIP.ACTransportTechnology,
+    T <: GenericTransportTechnology,
     B <: ContinuousInvestment,
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,
@@ -70,16 +70,14 @@ function construct_technologies!(
     technology_model::TechnologyModel{T, B, C, D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: PSIP.ACTransportTechnology,
+    T <: GenericTransportTechnology,
     B <: ContinuousInvestment,
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,
 }
 
     #TODO: Port get_available_component functions from PSY
-    #devices = PSIP.get_technologies(T, p)
     devices = [PSIP.get_technology(T, p, n) for n in names]
-    #add_expression!(container, SupplyTotal(), devices, C())
 
     #convert technology model to string for container metadata
     tech_model = IS.strip_module_name(B)
@@ -96,7 +94,7 @@ function construct_technologies!(
     technology_model::TechnologyModel{T, B, C, D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: PSIP.ACTransportTechnology,
+    T <: GenericTransportTechnology,
     B <: ContinuousInvestment,
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,
@@ -127,7 +125,7 @@ function construct_technologies!(
     technology_model::TechnologyModel{T, B, C, D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: PSIP.ACTransportTechnology,
+    T <: GenericTransportTechnology,
     B <: ContinuousInvestment,
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,
@@ -137,12 +135,6 @@ function construct_technologies!(
 
     #convert technology model to string for container metadata
     tech_model = IS.strip_module_name(B)
-
-    # Operations Component of objective function
-    objective_function!(container, devices, C(), tech_model)
-
-    # Add objective function from container to JuMP model
-    update_objective_function!(container)
     
     # Dispatch constraint
     add_constraints!(
@@ -165,7 +157,7 @@ function construct_technologies!(
     technology_model::TechnologyModel{T, B, C, D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: PSIP.ACTransportTechnology,
+    T <: GenericTransportTechnology,
     B <: ContinuousInvestment,
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,

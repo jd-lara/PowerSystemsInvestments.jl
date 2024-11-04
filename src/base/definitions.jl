@@ -22,6 +22,13 @@ const JuMPAffineExpressionVector = Vector{GAE}
 # File definitions
 const PROBLEM_LOG_FILENAME = "investment_problem.log"
 
+# Define generic constant for TransportTechnologies
+const GenericTransportTechnology = Union{
+    PSIP.ACTransportTechnology,
+    PSIP.ExistingTransportTechnology,
+    PSIP.HVDCTransportTechnology
+}
+
 # Enums
 ModelBuildStatus = IS.Optimization.ModelBuildStatus
 

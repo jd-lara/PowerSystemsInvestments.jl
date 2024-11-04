@@ -29,8 +29,13 @@ RunStatus = IS.Simulation.RunStatus
 
 IS.@scoped_enum(SOSStatusVariable, NO_VARIABLE = 1, PARAMETER = 2, VARIABLE = 3,)
 
+
+
+const OPTHORIZON = 8760
 # Mapping
-const OPMAPPING = Dict(("2024", 1) => 1:48)
+const OPMAPPING = Dict(("2024", 1) => 1:OPTHORIZON)
 #, ("2028", 1) => 49:96)
 const INVMAPPING = Dict("2024" => 1)
 #, "2028" => 2)
+
+const MAX_OPTIMIZE_TRIES = 10

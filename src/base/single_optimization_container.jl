@@ -865,8 +865,8 @@ function _make_system_expressions!(
     ::Type{SingleRegionBalanceModel},
 )
     @error "Hard Code TimeSteps"
-    time_steps = 1:48
-    container.time_steps = 1:48
+    time_steps = 1:OPTHORIZON
+    container.time_steps = 1:OPTHORIZON
     container.time_steps_investments = 1:1
     container.expressions = Dict(
         ExpressionKey(EnergyBalance, PSIP.Portfolio) =>
@@ -884,8 +884,8 @@ function _make_system_expressions!(
 )
     regions = PSIP.get_regions(PSIP.Zone, port)
     @error "Hard Code TimeSteps"
-    time_steps = 1:48
-    container.time_steps = 1:48
+    time_steps = 1:OPTHORIZON
+    container.time_steps = 1:OPTHORIZON
     container.time_steps_investments = 1:2
     container.expressions = Dict(
         ExpressionKey(EnergyBalance, PSIP.Portfolio) =>

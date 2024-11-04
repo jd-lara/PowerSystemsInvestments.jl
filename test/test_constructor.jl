@@ -26,7 +26,7 @@ end
     settings = PSINV.Settings(p_5bus)
     model = JuMP.Model(HiGHS.Optimizer)
     container = PSINV.SingleOptimizationContainer(settings, model)
-    PSINV.set_time_steps!(container, 1:48)
+    PSINV.set_time_steps!(container, 1:OPTHORIZON)
     PSINV.set_time_steps_investments!(container, 1:2)
 
     template = InvestmentModelTemplate(

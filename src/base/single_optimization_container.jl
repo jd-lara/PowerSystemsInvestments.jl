@@ -953,7 +953,7 @@ function build_model!(
         LOG_GROUP_OPTIMIZATION_CONTAINER
         TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(get_technology_type(tech_model))" begin
             if validate_available_technologies(tech_model, port)
-                for mod in [template.capital_model, template.operation_model] # template.feasibility_model
+                for mod in [template.capital_model, template.operation_model, template.feasibility_model]
                     construct_technologies!(
                         container,
                         port,
@@ -995,7 +995,7 @@ function build_model!(
             LOG_GROUP_OPTIMIZATION_CONTAINER
         TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(get_technology_type(branch_model))" begin
             if validate_available_technologies(branch_model, port)
-                for mod in [template.capital_model, template.operation_model] # template.feasibility_model
+                for mod in [template.capital_model, template.operation_model, template.feasibility_model]
                     construct_technologies!(
                         container,
                         port,
@@ -1028,7 +1028,7 @@ function build_model!(
             LOG_GROUP_OPTIMIZATION_CONTAINER
         TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(get_technology_type(tech_model))" begin
             if validate_available_technologies(tech_model, port)
-                for mod in [template.capital_model, template.operation_model] # template.feasibility_model
+                for mod in [template.capital_model, template.operation_model, template.feasibility_model]
                     construct_technologies!(
                         container,
                         port,
@@ -1052,7 +1052,7 @@ function build_model!(
             LOG_GROUP_OPTIMIZATION_CONTAINER
         TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(get_technology_type(branch_model))" begin
             if validate_available_technologies(branch_model, port)
-                for mod in [template.capital_model, template.operation_model] # template.feasibility_model
+                for mod in [template.capital_model, template.operation_model, template.feasibility_model]
                     construct_technologies!(
                         container,
                         port,

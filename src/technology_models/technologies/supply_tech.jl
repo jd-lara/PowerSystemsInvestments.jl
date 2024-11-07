@@ -350,14 +350,11 @@ function add_constraints!(
     installed_cap = get_expression(container, CumulativeCapacity(), D, tech_model)
     active_power = get_variable(container, V(), D, tech_model)
 
-    #@show installed_cap
-
     for d in devices
         name = PSIP.get_name(d)
         for year in time_steps_inv
             #time_steps_ix = mapping_ops[(year, rep_day)]
             time_steps_ix = mapping_ops[year]
-            @show time_steps_ix
             for (ix, t) in enumerate(time_steps_ix)
                 con_ub[name, t] = JuMP.@constraint(
                     get_jump_model(container),
@@ -375,12 +372,10 @@ function add_constraints!(
     ::V,
     devices::U,
     tech_model::String
-    #::NetworkModel{X},
 ) where {
     T<:MaximumCumulativeCapacity,
     U<:Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
     V<:CumulativeCapacity,
-    #X <: PM.AbstractPowerModel,
 } where {D<:PSIP.SupplyTechnology}
     time_steps = get_time_steps_investments(container)
 

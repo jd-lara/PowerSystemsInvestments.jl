@@ -944,6 +944,13 @@ function build_model!(
     initialize_system_expressions!(container, transport_model, port)
 
     tech_names = collect(values(template.technology_models))
+
+    # Check for duplicate technologies
+    flattened_list = collect(Iterators.flatten(tech_names))
+    if !allunique(flattened_list)
+        error("Multiple technology models defined for the same technology")
+    end
+
     tech_templates = collect(keys(template.technology_models))
     # Order is required
     @error "Remember to restore availability code here"

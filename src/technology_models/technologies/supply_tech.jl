@@ -424,3 +424,13 @@ function objective_function!(
     add_fixed_om_cost!(container, CumulativeCapacity(), devices, formulation, tech_model)
     return
 end
+function objective_function!(
+    container::SingleOptimizationContainer,
+    devices::Union{Vector{T}, IS.FlattenIteratorWrapper{T}},
+    #DeviceModel{T, U},
+    formulation::InvestmentTechnologyFormulation, #Type{<:PM.AbstractPowerModel},
+    tech_model::String,
+) where {T<:PSIP.SupplyTechnology{PSIP.RenewableDispatch}}#, U <: BuildCapacity}
+    add_capital_cost!(container, BuildCapacity(), devices, formulation, tech_model) #U()
+    return
+end

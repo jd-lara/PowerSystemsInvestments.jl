@@ -31,7 +31,7 @@ struct TimeMapping
         total_slice_count = length(operational_periods) + length(feasibility_periods)
         time_stamps = Vector{Dates.DateTime}(undef, total_count)
         consecutive_slices = Vector{Vector{Int}}(undef, total_slice_count)
-        inverse_invest_mapping = Vector{Vector{Int}}(undef, total_slice_count)
+        inverse_invest_mapping = Vector{Int}(undef, total_slice_count)
         map_to_operational_slices = Dict{Int, Vector{Int}}(
             i => Vector{Int}() for i in 1:length(investment_intervals)
         )
@@ -69,7 +69,7 @@ struct TimeMapping
                 ix += 1
             end
         end
-
+        
         op_periods = OperationalPeriods(
             time_stamps,
             consecutive_slices,
@@ -90,3 +90,7 @@ end
 
 get_total_operation_period_count(tm::TimeMapping) = length(tm.operation.time_stamps)
 # TODO: use more accessors to get the problem times
+
+function TimeMapping(::Nothing)
+    return
+end

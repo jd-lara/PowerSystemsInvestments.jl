@@ -886,7 +886,7 @@ function _make_system_expressions!(
     @error "Hard Code TimeSteps"
     time_steps = 1:OPTHORIZON
     container.time_steps = 1:OPTHORIZON
-    container.time_steps_investments = 1:2
+    container.time_steps_investments = 1:1
     container.expressions = Dict(
         ExpressionKey(EnergyBalance, PSIP.Portfolio) =>
             _make_container_array(regions, time_steps),
@@ -999,11 +999,11 @@ function build_model!(
     =#
 
     # Transportation Model Arguments
-    
+
     branch_names = collect(values(template.branch_models))
     branch_templates = collect(keys(template.branch_models))
     for (i, name_list) in enumerate(branch_names)
-        branch_model= branch_templates[i]
+        branch_model = branch_templates[i]
         @debug "Building Arguments for $(get_technology_type(branch_model)) with $(get_investment_formulation(branch_model)) formulation" _group =
             LOG_GROUP_OPTIMIZATION_CONTAINER
         TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(get_technology_type(branch_model))" begin
@@ -1024,7 +1024,7 @@ function build_model!(
                 LOG_GROUP_OPTIMIZATION_CONTAINER
         end
     end
-    
+
     # Constructor for transport model, adds EnergyBalanceConstraint
     TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(transport_model)" begin
         @debug "Building $(transport_model) transport formulation" _group =

@@ -38,7 +38,7 @@ IS.@scoped_enum(SOSStatusVariable, NO_VARIABLE = 1, PARAMETER = 2, VARIABLE = 3,
 
 
 
-const OPTHORIZON = 8760
+const OPTHORIZON = 744
 # Mapping
 const OPMAPPING = Dict(("2024", 1) => 1:OPTHORIZON)
 #, ("2028", 1) => 49:96)

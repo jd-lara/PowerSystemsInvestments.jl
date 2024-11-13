@@ -154,6 +154,58 @@ function add_to_expression!(
     container::SingleOptimizationContainer,
     expression_type::T,
     devices::U,
+    formulation::BasicDispatchFeasibility,
+    transport_model::TransportModel{V},
+    #tech_model::String,
+) where {
+    T<:FeasibilitySurplus,
+    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
+    V<:MultiRegionBalanceModel
+} where {D<:PSIP.DemandRequirement}
+    #@assert !isempty(devices)
+    time_steps = get_time_steps(container)
+    #binary = false
+    #var = get_variable(container, ActivePowerVariable(), D)
+    #expression = get_expression(container, T(), PSIP.Portfolio)
+    #TODO: Handle the timeseries in an actual generic way
+    # Hard Code Mapping #
+    @warn("creating hard code mapping. Remove it later")
+    mapping_ops = OPMAPPING
+    mapping_inv = INVMAPPING
+    time_steps = get_time_steps(container)
+    expression = get_expression(container, T(), PSIP.Portfolio)
+    # expression = add_expression_container!(container, expression_type, D, time_steps)
+    #TODO: move to separate add_to_expression! function, could not figure out ExpressionKey
+    for d in devices
+        name = PSIP.get_name(d)
+        region = PSIP.get_region(d)
+        #peak_load = PSIP.get_peak_load(d)
+        ts_name = "ops_peak_load"
+        # ts_keys = filter(x -> x.name == ts_name, IS.get_time_series_keys(d))
+        ts_keys = filter(x -> x.name == ts_name && Dates.Year(x.initial_timestamp) == Dates.Year(2024), IS.get_time_series_keys(d))
+        for ts_key in ts_keys
+            ts_type = ts_key.time_series_type
+            features = ts_key.features
+            year = features["year"]
+            #rep_day = features["rep_day"]
+            ts_data = TimeSeries.values(
+                #IS.get_time_series(ts_type, d, ts_name; year=year, rep_day=rep_day).data,
+                IS.get_time_series(ts_type, d, ts_name; year=year).data,
+            )
+            time_steps_ix = mapping_ops[(year, 1)]
+            multiplier = -1.0
+            for (ix, t) in enumerate(time_steps_ix)
+                _add_to_jump_expression!(expression[region, t], ts_data[ix] * multiplier)
+            end
+        end
+    end
+    return
+end
+
+function add_to_expression!(
+    container::SingleOptimizationContainer,
+    expression_type::T,
+    devices::U,
     formulation::BasicDispatch,
     transport_model::TransportModel{V},
     #tech_model::String,
@@ -224,8 +276,8 @@ function add_to_expression!(
 
     # Hard Code Mapping #
     @warn("creating hard code mapping. Remove it later")
-    mapping_ops = Dict("2030" => 1:24, "2035" => 25:48)
-    mapping_inv = Dict("2030" => 1, "2035" => 2)
+    mapping_ops = OPMAPPING
+    mapping_inv = INVMAPPING
 
     time_steps = get_time_steps(container)
     expression = get_expression(container, T(), PSIP.Portfolio)
@@ -235,7 +287,7 @@ function add_to_expression!(
         region = PSIP.get_region(d)
         #peak_load = PSIP.get_peak_load(d)
         ts_name = "ops_peak_load"
-        ts_keys = filter(x -> x.name == ts_name, IS.get_time_series_keys(d))
+        ts_keys = filter(x -> x.name == ts_name && Dates.Year(x.initial_timestamp) == Dates.Year(2024), IS.get_time_series_keys(d))
         for ts_key in ts_keys
             ts_type = ts_key.time_series_type
             features = ts_key.features
@@ -245,7 +297,7 @@ function add_to_expression!(
                 #IS.get_time_series(ts_type, d, ts_name; year=year, rep_day=rep_day).data,
                 IS.get_time_series(ts_type, d, ts_name; year=year).data,
             )
-            time_steps_ix = mapping_ops[year]
+            time_steps_ix = mapping_ops[(year, 1)]
 
             multiplier = -1.0
             for (ix, t) in enumerate(time_steps_ix)

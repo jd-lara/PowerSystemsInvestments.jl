@@ -4,13 +4,13 @@ function construct_technologies!(
     names::Vector{String},
     ::ArgumentConstructStage,
     ::CapitalCostModel,
-    technology_model::TechnologyModel{T, B, C, D},
+    technology_model::TechnologyModel{T,B,C,D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: GenericTransportTechnology,
-    B <: ContinuousInvestment,
-    C <: BasicDispatch,
-    D <: FeasibilityTechnologyFormulation,
+    T<:GenericTransportTechnology,
+    B<:ContinuousInvestment,
+    C<:BasicDispatch,
+    D<:FeasibilityTechnologyFormulation,
 }
 
     #TODO: Port get_available_component functions from PSY
@@ -36,13 +36,13 @@ function construct_technologies!(
     names::Vector{String},
     ::ArgumentConstructStage,
     ::OperationCostModel,
-    technology_model::TechnologyModel{T, B, C, D},
+    technology_model::TechnologyModel{T,B,C,D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: GenericTransportTechnology,
-    B <: ContinuousInvestment,
-    C <: BasicDispatch,
-    D <: FeasibilityTechnologyFormulation,
+    T<:GenericTransportTechnology,
+    B<:ContinuousInvestment,
+    C<:BasicDispatch,
+    D<:FeasibilityTechnologyFormulation,
 }
 
     #TODO: Port get_available_component functions from PSY
@@ -67,13 +67,13 @@ function construct_technologies!(
     names::Vector{String},
     ::ArgumentConstructStage,
     ::FeasibilityModel,
-    technology_model::TechnologyModel{T, B, C, D},
+    technology_model::TechnologyModel{T,B,C,D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: GenericTransportTechnology,
-    B <: ContinuousInvestment,
-    C <: BasicDispatch,
-    D <: FeasibilityTechnologyFormulation,
+    T<:GenericTransportTechnology,
+    B<:ContinuousInvestment,
+    C<:BasicDispatch,
+    D<:FeasibilityTechnologyFormulation,
 }
 
     #TODO: Port get_available_component functions from PSY
@@ -91,13 +91,13 @@ function construct_technologies!(
     names::Vector{String},
     ::ModelConstructStage,
     model::CapitalCostModel,
-    technology_model::TechnologyModel{T, B, C, D},
+    technology_model::TechnologyModel{T,B,C,D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: GenericTransportTechnology,
-    B <: ContinuousInvestment,
-    C <: BasicDispatch,
-    D <: FeasibilityTechnologyFormulation,
+    T<:GenericTransportTechnology,
+    B<:ContinuousInvestment,
+    C<:BasicDispatch,
+    D<:FeasibilityTechnologyFormulation,
 }
     #devices = PSIP.get_technologies(T, p)
     devices = [PSIP.get_technology(T, p, n) for n in names]
@@ -122,20 +122,19 @@ function construct_technologies!(
     names::Vector{String},
     ::ModelConstructStage,
     model::OperationCostModel,
-    technology_model::TechnologyModel{T, B, C, D},
+    technology_model::TechnologyModel{T,B,C,D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: GenericTransportTechnology,
-    B <: ContinuousInvestment,
-    C <: BasicDispatch,
-    D <: FeasibilityTechnologyFormulation,
+    T<:GenericTransportTechnology,
+    B<:ContinuousInvestment,
+    C<:BasicDispatch,
+    D<:FeasibilityTechnologyFormulation,
 }
     #devices = PSIP.get_technologies(T, p)
     devices = [PSIP.get_technology(T, p, n) for n in names]
 
     #convert technology model to string for container metadata
     tech_model = IS.strip_module_name(B)
-    
     # Dispatch constraint
     add_constraints!(
         container,
@@ -154,13 +153,13 @@ function construct_technologies!(
     names::Vector{String},
     ::ModelConstructStage,
     model::FeasibilityModel,
-    technology_model::TechnologyModel{T, B, C, D},
+    technology_model::TechnologyModel{T,B,C,D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: GenericTransportTechnology,
-    B <: ContinuousInvestment,
-    C <: BasicDispatch,
-    D <: FeasibilityTechnologyFormulation,
+    T<:GenericTransportTechnology,
+    B<:ContinuousInvestment,
+    C<:BasicDispatch,
+    D<:FeasibilityTechnologyFormulation,
 }
     #devices = PSIP.get_technologies(T, p)
     devices = [PSIP.get_technology(T, p, n) for n in names]

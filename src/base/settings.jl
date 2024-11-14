@@ -20,7 +20,7 @@ function Settings(
     portfolio;
     initial_time::Dates.DateTime=UNSET_INI_TIME,
     time_series_cache_size::Int=IS.TIME_SERIES_CACHE_SIZE_BYTES,
-    warm_start::Bool = true,
+    warm_start::Bool=true,
     horizon::Dates.Period=UNSET_HORIZON,
     resolution::Dates.Period=UNSET_RESOLUTION,
     optimizer=nothing,

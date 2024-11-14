@@ -14,7 +14,14 @@ mutable struct InvestmentModelTemplate <: AbstractInvestmentModelTemplate
         feasibility_model::FeasibilityModel,
         transport_model::TransportModel{T},
     ) where {T <: AbstractTransportAggregation}
-        new(capital_model, operation_model, feasibility_model, transport_model, Dict(), Dict())
+        new(
+            capital_model,
+            operation_model,
+            feasibility_model,
+            transport_model,
+            Dict(),
+            Dict(),
+        )
     end
 end
 
@@ -57,12 +64,17 @@ function set_technology_model!(
     component_type::Type{<:PSIP.Technology},
     investment_formulation::Type{<:InvestmentTechnologyFormulation},
     operations_formulation::Type{<:OperationsTechnologyFormulation},
-    feasibility_formulation::Type{<:FeasibilityTechnologyFormulation}
+    feasibility_formulation::Type{<:FeasibilityTechnologyFormulation},
 )
     set_technology_model!(
         template,
         names,
-        TechnologyModel(component_type, investment_formulation, operations_formulation, feasibility_formulation),
+        TechnologyModel(
+            component_type,
+            investment_formulation,
+            operations_formulation,
+            feasibility_formulation,
+        ),
     )
     return
 end
@@ -74,7 +86,7 @@ function set_technology_model!(
         <:PSIP.Technology,
         <:InvestmentTechnologyFormulation,
         <:OperationsTechnologyFormulation,
-        <:FeasibilityTechnologyFormulation
+        <:FeasibilityTechnologyFormulation,
     },
 )
     _set_model!(template.technology_models, names, model)
@@ -88,7 +100,7 @@ function set_technology_model!(
         <:GenericTransportTechnology,
         <:InvestmentTechnologyFormulation,
         <:OperationsTechnologyFormulation,
-        <:FeasibilityTechnologyFormulation
+        <:FeasibilityTechnologyFormulation,
     },
 )
     _set_model!(template.branch_models, names, model)

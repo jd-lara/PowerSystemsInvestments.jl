@@ -165,15 +165,13 @@ import InfrastructureSystems.Optimization:
     to_matrix,
     get_store_container_type
 import InfrastructureSystems.Optimization:
-    OptimizationProblemResults,
-    OptimizationProblemResultsExport,
-    OptimizerStats
-import InfrastructureSystems.Optimization: 
-    read_optimizer_stats, 
+    OptimizationProblemResults, OptimizationProblemResultsExport, OptimizerStats
+import InfrastructureSystems.Optimization:
+    read_optimizer_stats,
     get_optimizer_stats,
-    export_results, 
-    serialize_results, 
-    get_timestamps, 
+    export_results,
+    serialize_results,
+    get_timestamps,
     get_model_base_power,
     get_objective_value
 import TimerOutputs

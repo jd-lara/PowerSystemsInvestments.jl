@@ -57,7 +57,7 @@ function construct_technologies!(
 
     # BuildCapacity variable
     # This should break if a name is passed here a second time
-    
+
     add_variable!(container, BuildCapacity(), devices, B(), tech_model)
 
     # CumulativeCapacity
@@ -91,7 +91,14 @@ function construct_technologies!(
     add_variable!(container, ActivePowerVariable(), devices, C(), tech_model)
 
     # EnergyBalance
-    add_to_expression!(container, EnergyBalance(), devices, C(), tech_model, transport_model)
+    add_to_expression!(
+        container,
+        EnergyBalance(),
+        devices,
+        C(),
+        tech_model,
+        transport_model,
+    )
 
     return
 end
@@ -148,7 +155,13 @@ function construct_technologies!(
     update_objective_function!(container)
 
     # Capacity constraint
-    add_constraints!(container, MaximumCumulativeCapacity(), CumulativeCapacity(), devices, tech_model)
+    add_constraints!(
+        container,
+        MaximumCumulativeCapacity(),
+        CumulativeCapacity(),
+        devices,
+        tech_model,
+    )
 
     return
 end
@@ -178,14 +191,14 @@ function construct_technologies!(
 
     # Add objective function from container to JuMP model
     update_objective_function!(container)
-    
+
     # Dispatch constraint
     add_constraints!(
         container,
         ActivePowerLimitsConstraint(),
         ActivePowerVariable(),
         devices,
-        tech_model
+        tech_model,
     )
 
     return
@@ -214,4 +227,3 @@ function construct_technologies!(
 
     return
 end
-

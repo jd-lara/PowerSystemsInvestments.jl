@@ -39,7 +39,7 @@ function test_data()
     ##### Thermals #####
     ####################
 
-    thermals = collect(get_components(ThermalStandard, sys));
+    thermals = collect(get_components(ThermalStandard, sys))
     var_cost = get_variable.((get_operation_cost.((thermals))))
     op_cost = get_proportional_term.(get_value_curve.(var_cost))
 
@@ -75,7 +75,7 @@ function test_data()
         gen_ID=1,
         available=true,
         name="cheap_thermal",
-        initial_capacity= 0.0,#initial_cap_cheap,
+        initial_capacity=0.0,#initial_cap_cheap,
         fuel=ThermalFuels.COAL,
         power_systems_type="ThermalStandard",
         balancing_topology="Region",
@@ -112,32 +112,32 @@ function test_data()
     )
 
     t_th_mid = SupplyTechnology{ThermalStandard}(;
-    base_power=1.0, # Natural Units
-    prime_mover_type=PrimeMovers.ST,
-    capital_costs=LinearCurve(coal_igcc_capex * 1000.0),
-    minimum_required_capacity=0.0,
-    gen_ID=1,
-    available=true,
-    name="mid_thermal",
-    initial_capacity= 0.0,#initial_cap_cheap,
-    fuel=ThermalFuels.COAL,
-    power_systems_type="ThermalStandard",
-    balancing_topology="Region",
-    operation_costs=ThermalGenerationCost(
-        variable=CostCurve(LinearCurve(cheap_th_var_cost)),
-        fixed=0.0,
-        start_up=0.0,
-        shut_down=0.0,
-    ),#LinearCurve(0.0),
-    maximum_capacity=1e8,
-    outage_factor=0.92,
-)
+        base_power=1.0, # Natural Units
+        prime_mover_type=PrimeMovers.ST,
+        capital_costs=LinearCurve(coal_igcc_capex * 1000.0),
+        minimum_required_capacity=0.0,
+        gen_ID=1,
+        available=true,
+        name="mid_thermal",
+        initial_capacity=0.0,#initial_cap_cheap,
+        fuel=ThermalFuels.COAL,
+        power_systems_type="ThermalStandard",
+        balancing_topology="Region",
+        operation_costs=ThermalGenerationCost(
+            variable=CostCurve(LinearCurve(cheap_th_var_cost)),
+            fixed=0.0,
+            start_up=0.0,
+            shut_down=0.0,
+        ),#LinearCurve(0.0),
+        maximum_capacity=1e8,
+        outage_factor=0.92,
+    )
 
     #####################
     ##### Renewable #####
     #####################
 
-    renewables = collect(get_components(RenewableDispatch, sys));
+    renewables = collect(get_components(RenewableDispatch, sys))
     wind_op_costs =
         get_proportional_term.(
             get_value_curve.(get_variable.((get_operation_cost.((renewables)))))
@@ -229,7 +229,7 @@ function test_data()
     ######## Load #######
     #####################
 
-    loads = collect(get_components(PowerLoad, sys));
+    loads = collect(get_components(PowerLoad, sys))
     peak_load = sum(get_active_power.(loads))
 
     ts_load_2030 = zeros(length(tstamp_2030_ops))
@@ -297,7 +297,12 @@ function test_data()
 
     IS.add_time_series!(p_5bus.data, t_demand, ts_demand_2030; year="2030")
     IS.add_time_series!(p_5bus.data, t_demand, ts_demand_2035; year="2035")
-    t = IS.get_time_series(IS.SingleTimeSeries, t_re, "ops_variable_cap_factor"; year="2035")
+    t = IS.get_time_series(
+        IS.SingleTimeSeries,
+        t_re,
+        "ops_variable_cap_factor";
+        year="2035",
+    )
     load = IS.get_time_series(IS.SingleTimeSeries, t_demand, "ops_peak_load"; year="2030")
     #InfrastructureSystems.serialize(p_5bus)
 

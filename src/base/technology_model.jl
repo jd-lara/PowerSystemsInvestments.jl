@@ -6,7 +6,6 @@ mutable struct TechnologyModel{
 }
     use_slacks::Bool
     duals::Vector{DataType}
-    time_series_names::Dict{Type{<:TimeSeriesParameter}, String}
     attributes::Dict{String, Any}
 end
 
@@ -72,7 +71,6 @@ function TechnologyModel(
     ::Type{C};
     use_slacks=false,
     duals=Vector{DataType}(),
-    time_series_names=get_default_time_series_names(D, A, B, C),
     attributes=Dict{String, Any}(),
 ) where {
     D <: PSIP.Technology,
@@ -88,5 +86,5 @@ function TechnologyModel(
     #_check_technology_formulation(D, A, B, C)
     #TODO: new is only defined for inner constructors, replace for now but we might want to reorganize this file later
     #new{D, B, C}(use_slacks, duals, time_series_names, attributes_, nothing)
-    return TechnologyModel{D, A, B, C}(use_slacks, duals, time_series_names, attributes_)
+    return TechnologyModel{D, A, B, C}(use_slacks, duals, attributes_)
 end

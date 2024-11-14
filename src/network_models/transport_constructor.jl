@@ -5,9 +5,7 @@ function construct_transport!(
     #names::Vector{String},
     #::ArgumentConstructStage,
 )
-
     add_constraints!(container, SingleRegionBalanceConstraint, p)
-
 end
 
 function construct_transport!(
@@ -17,7 +15,5 @@ function construct_transport!(
     #names::Vector{String},
     #::ArgumentConstructStage,
 )
-
     add_constraints!(container, MultiRegionBalanceConstraint, p)
-
 end

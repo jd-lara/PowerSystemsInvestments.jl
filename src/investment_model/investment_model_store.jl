@@ -4,7 +4,6 @@ Stores results data for one InvestmentModel
 
 const InvestmentModelIndexType = Dates.DateTime
 
-
 mutable struct InvestmentModelStore <: ISOPT.AbstractModelStore
     # All DenseAxisArrays have axes (column names, row indexes)
     duals::Dict{ConstraintKey, OrderedDict{Dates.DateTime, DenseAxisArray{Float64, 2}}}
@@ -30,59 +29,25 @@ function InvestmentModelStore()
 end
 
 struct ModelStoreParams <: ISOPT.AbstractModelStoreParams
-    num_executions::Int
-    horizon_count::Int
-    interval::Dates.Millisecond
-    resolution::Dates.Millisecond
     base_power::Float64
     system_uuid::Base.UUID
     container_metadata::ISOPT.OptimizationContainerMetadata
-
-    function ModelStoreParams(
-        num_executions::Int,
-        horizon_count::Int,
-        interval::Dates.Millisecond,
-        resolution::Dates.Millisecond,
-        base_power::Float64,
-        system_uuid::Base.UUID,
-        container_metadata=ISOPT.OptimizationContainerMetadata(),
-    )
-        new(
-            num_executions,
-            horizon_count,
-            Dates.Millisecond(interval),
-            Dates.Millisecond(resolution),
-            base_power,
-            system_uuid,
-            container_metadata,
-        )
-    end
 end
 
+#=
 function ModelStoreParams(
-    num_executions::Int,
-    horizon::Dates.Millisecond,
-    interval::Dates.Millisecond,
-    resolution::Dates.Millisecond,
     base_power::Float64,
     system_uuid::Base.UUID,
     container_metadata=ISOPT.OptimizationContainerMetadata(),
 )
     return ModelStoreParams(
-        num_executions,
-        horizon ÷ resolution,
-        Dates.Millisecond(interval),
-        Dates.Millisecond(resolution),
         base_power,
         system_uuid,
         container_metadata,
     )
 end
+=#
 
-get_num_executions(params::ModelStoreParams) = params.num_executions
-get_horizon_count(params::ModelStoreParams) = params.horizon_count
-get_interval(params::ModelStoreParams) = params.interval
-get_resolution(params::ModelStoreParams) = params.resolution
 get_base_power(params::ModelStoreParams) = params.base_power
 get_system_uuid(params::ModelStoreParams) = params.system_uuid
 deserialize_key(params::ModelStoreParams, name) =
@@ -94,10 +59,11 @@ function initialize_storage!(
     params::ModelStoreParams,
 )
     num_of_executions = get_num_executions(params)
-    if length(get_time_steps(container)) < 1
+    time_mapping = get_time_mapping(container)
+    if length(get_time_steps(time_mapping)) < 1
         error("The time step count in the optimization container is not defined")
     end
-    time_steps_count = get_time_steps(container)[end]
+    time_steps_count = get_time_steps(time_mapping)[end]
     initial_time = get_initial_time(container)
     model_interval = get_interval(params)
     for type in STORE_CONTAINERS

@@ -35,7 +35,6 @@ function construct_technologies!(
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,
 }
-
     #TODO: Port get_available_component functions from PSY
     devices = [PSIP.get_technology(T, p, n) for n in names]
 

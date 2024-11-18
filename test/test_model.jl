@@ -37,7 +37,7 @@
     tech_models = template.technology_models
     tech_models[thermal_model] = ["cheap_thermal", "expensive_thermal"]
     tech_models[vre_model] = ["wind"]
-    tech_models[demand_model] = ["demand"]
+    tech_models[demand_model] = ["demand1", "demand2"]
 
     @test build!(m; output_dir= mktempdir(; cleanup = true)) == PSINV.ModelBuildStatus.BUILT
 
@@ -45,17 +45,17 @@
 
     res = OptimizationProblemResults(m)
     obj = res.optimizer_stats[1, :objective_value] #IS.get_objective_value(res) not working for some reason?
-    @test isapprox(obj, 191957656.0; atol = 1000000.0)
+    @test isapprox(obj, 9.077647543420135e9; atol = 1000000.0)
 
     vars = res.variable_values
-    @test PSINV.VariableKey(ActivePowerVariable, PSIP.SupplyTechnology{ThermalStandard}) in keys(vars)
-    @test PSINV.VariableKey(ActivePowerVariable, PSIP.SupplyTechnology{RenewableDispatch}) in keys(vars)
+    @test PSINV.VariableKey(ActivePowerVariable, PSIP.SupplyTechnology{ThermalStandard}, "ContinuousInvestment" )in keys(vars)
+    @test PSINV.VariableKey(ActivePowerVariable, PSIP.SupplyTechnology{RenewableDispatch}, "ContinuousInvestment") in keys(vars)
     # Note that a lot of the read variable functions and stuff from IS don't work for investment variables because they are trying to use the operations timesteps
     #@test size(IS.Optimization.read_variable(res, PSINV.VariableKey(BuildCapacity, PSIP.SupplyTechnology{ThermalStandard}))) == (2, 2)
     #@test size(IS.Optimization.read_variable(res, PSINV.VariableKey(BuildCapacity, PSIP.SupplyTechnology{RenewableDispatch}))) == (2, 1)
     # Extra column for datetime
-    @test size(IS.Optimization.read_variable(res, PSINV.VariableKey(ActivePowerVariable, PSIP.SupplyTechnology{ThermalStandard}))) == (48, 3)
-    @test size(IS.Optimization.read_variable(res, PSINV.VariableKey(ActivePowerVariable, PSIP.SupplyTechnology{RenewableDispatch}))) == (48, 2)
+    @test size(IS.Optimization.read_variable(res, PSINV.VariableKey(ActivePowerVariable, PSIP.SupplyTechnology{ThermalStandard}, "ContinuousInvestment"))) == (48, 3)
+    @test size(IS.Optimization.read_variable(res, PSINV.VariableKey(ActivePowerVariable, PSIP.SupplyTechnology{RenewableDispatch}, "ContinuousInvestment"))) == (48, 2)
     #@test size(IS.Optimization.read_expression(res, PSINV.VariableKey(CumulativeCapacity, PSIP.SupplyTechnology{RenewableDispatch}))) == (2, 2)
 
 end
@@ -70,22 +70,37 @@ end
         TransportModel(SingleRegionBalanceModel, use_slacks=false),
     )
 
-    demand_model = PSINV.TechnologyModel(
+    set_technology_model!(
+        template,
+        ["demand1", "demand2"],
         PSIP.DemandRequirement{PSY.PowerLoad},
         PSINV.StaticLoadInvestment,
         PSINV.BasicDispatch,
         PSINV.BasicDispatchFeasibility,
     )
 
-    vre_model = PSINV.TechnologyModel(
+    set_technology_model!(
+        template,
+        ["wind"],
         PSIP.SupplyTechnology{PSY.RenewableDispatch},
         PSINV.ContinuousInvestment,
         PSINV.BasicDispatch,
         PSINV.BasicDispatchFeasibility,
     )
 
-    thermal_model = PSINV.TechnologyModel(
+    set_technology_model!(
+        template,
+        ["cheap_thermal", "expensive_thermal"],
         PSIP.SupplyTechnology{PSY.ThermalStandard},
+        PSINV.IntegerInvestment,
+        PSINV.BasicDispatch,
+        PSINV.BasicDispatchFeasibility,
+    )
+
+    set_technology_model!(
+        template,
+        ["test_storage"],
+        PSIP.StorageTechnology{EnergyReservoirStorage},
         PSINV.ContinuousInvestment,
         PSINV.BasicDispatch,
         PSINV.BasicDispatchFeasibility,
@@ -93,16 +108,11 @@ end
 
     m = InvestmentModel(template, PSINV.SingleInstanceSolve, p_5bus; horizon=Dates.Millisecond(100), resolution=Dates.Millisecond(1), optimizer=HiGHS.Optimizer, portfolio_to_file=false);
 
-    tech_models = template.technology_models
-    tech_models[thermal_model] = ["cheap_thermal", "expensive_thermal"]
-    tech_models[vre_model] = ["wind"]
-    tech_models[demand_model] = ["demand"]
-
     @test build!(m; output_dir= mktempdir(; cleanup = true)) == PSINV.ModelBuildStatus.BUILT
     @test solve!(m) == PSINV.RunStatus.SUCCESSFULLY_FINALIZED
 
     res = OptimizationProblemResults(m)
-    @test length(IS.Optimization.list_variable_names(res)) == 4
+    @test length(IS.Optimization.list_variable_names(res)) == 9
     @test length(IS.Optimization.list_dual_names(res)) == 0
     #@test get_model_base_power(res) == 100.0
     @test isa(IS.Optimization.get_objective_value(res), Float64)

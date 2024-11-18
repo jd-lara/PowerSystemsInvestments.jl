@@ -197,7 +197,6 @@ function add_to_expression!(
     devices::U,
     formulation::BasicDispatch,
     tech_model::String,
-    tech_model::String,
     transport_model::TransportModel{W}
 ) where {
     T<:EnergyBalance,

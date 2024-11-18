@@ -178,6 +178,7 @@ function add_expression!(
     U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
 } where {D <: PSIP.SupplyTechnology}
     @assert !isempty(devices)
+    time_mapping = get_time_mapping(container)
     time_steps = get_time_steps(time_mapping)
     binary = false
 
@@ -208,10 +209,10 @@ function add_to_expression!(
     V <: SingleRegionBalanceModel,
 } where {D <: PSIP.SupplyTechnology}
     #@assert !isempty(devices)
+    time_mapping = get_time_mapping(container)
     time_steps = get_time_steps(time_mapping)
     #binary = false
     #var = get_variable(container, ActivePowerVariable(), D)
-
     variable = get_variable(container, ActivePowerVariable(), D, tech_model)
     expression = get_expression(container, T(), PSIP.Portfolio)
     # expression = add_expression_container!(container, expression_type, D, time_steps)
@@ -334,13 +335,9 @@ function add_constraints!(
     U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
     V <: ActivePowerVariable,
 } where {D <: PSIP.SupplyTechnology{PSY.ThermalStandard}}
-    # Hard Code Mapping #
-    # TODO: Remove
-    @warn("creating hard code mapping. Remove it later")
-    mapping_ops = Dict(1 => 1:24, 2 => 25:48)
     time_mapping = get_time_mapping(container)
     time_steps = get_time_steps(time_mapping)
-    time_steps_inv = get_investment_time_steps(time_mapping)
+    device_names = PSIP.get_name.(devices)
 
     device_names = PSIP.get_name.(devices)
     con_ub = add_constraints_container!(
@@ -354,20 +351,24 @@ function add_constraints!(
 
     installed_cap = get_expression(container, CumulativeCapacity(), D, tech_model)
     active_power = get_variable(container, V(), D, tech_model)
+    operational_indexes = get_operational_indexes(time_mapping)
+    consecutive_slices = get_consecutive_slices(time_mapping)
+    inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
 
     for d in devices
         name = PSIP.get_name(d)
-        for year in time_steps_inv
-            #time_steps_ix = mapping_ops[(year, rep_day)]
-            time_steps_ix = mapping_ops[year]
-            for (ix, t) in enumerate(time_steps_ix)
+        for op_ix in operational_indexes
+            time_slices = consecutive_slices[op_ix]
+            time_step_inv = inverse_invest_mapping[op_ix]
+            for t in time_slices
                 con_ub[name, t] = JuMP.@constraint(
                     get_jump_model(container),
-                    active_power[name, t] <= installed_cap[name, year]
+                    active_power[name, t] <= installed_cap[name, time_step_inv]
                 )
             end
         end
     end
+    return
 end
 
 # Maximum cumulative capacity

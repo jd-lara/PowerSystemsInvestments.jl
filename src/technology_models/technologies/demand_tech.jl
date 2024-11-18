@@ -35,47 +35,27 @@ function add_to_expression!(
     V <: SingleRegionBalanceModel,
 } where {D <: PSIP.DemandRequirement}
     #@assert !isempty(devices)
-    time_steps = get_time_steps(time_mapping)
-    #binary = false
-    #var = get_variable(container, ActivePowerVariable(), D)
-
-    #expression = get_expression(container, T(), PSIP.Portfolio)
-
-    #TODO: Handle the timeseries in an actual generic way
-
-    # Hard Code Mapping #
-    @warn("creating hard code mapping. Remove it later")
-    mapping_ops = Dict("2030" => 1:24, "2035" => 25:48)
-    mapping_inv = Dict("2030" => 1, "2035" => 2)
-
-    time_steps = get_time_steps(time_mapping)
+    time_mapping = get_time_mapping(container)
+    operational_indexes = get_operational_indexes(time_mapping)
+    consecutive_slices = get_consecutive_slices(time_mapping)
     expression = get_expression(container, T(), PSIP.Portfolio)
-    # expression = add_expression_container!(container, expression_type, D, time_steps)
-
-    #TODO: move to separate add_to_expression! function, could not figure out ExpressionKey
+    time_stamps = get_time_stamps(time_mapping)
 
     for d in devices
-        name = PSIP.get_name(d)
-        #peak_load = PSIP.get_peak_load(d)
-        ts_name = "ops_peak_load"
-        ts_keys = filter(x -> x.name == ts_name, IS.get_time_series_keys(d))
-        for ts_key in ts_keys
-            ts_type = ts_key.time_series_type
-            features = ts_key.features
-            year = features["year"]
-            #rep_day = features["rep_day"]
-            ts_data = TimeSeries.values(
-                #IS.get_time_series(ts_type, d, ts_name; year=year, rep_day=rep_day).data,
-                IS.get_time_series(ts_type, d, ts_name; year=year).data,
-            )
-            time_steps_ix = mapping_ops[year]
-
-            multiplier = -1.0
-            for (ix, t) in enumerate(time_steps_ix)
-                _add_to_jump_expression!(
-                    expression["SingleRegion", t],
-                    ts_data[ix] * multiplier,
+        for op_ix in operational_indexes
+            time_slices = consecutive_slices[op_ix]
+            time_series = retrieve_ops_time_series(d, op_ix, time_mapping)
+            # Load Data is in MW
+            ts_data = TimeSeries.values(time_series.data)
+            first_tstamp = time_stamps[first(time_slices)]
+            first_ts_tstamp = first(TimeSeries.timestamp(time_series.data))
+            if first_tstamp != first_ts_tstamp
+                @error(
+                    "Initial timestamp of timeseries $(IS.get_name(time_series)) of technology $(d.name) does not match with the expected representative day $op_ix"
                 )
+            end
+            for (ix, t) in enumerate(time_slices)
+                _add_to_jump_expression!(expression["SingleRegion", t], -1.0 * ts_data[ix])
             end
         end
     end
@@ -107,6 +87,7 @@ function add_to_expression!(
         for op_ix in operational_indexes
             time_slices = consecutive_slices[op_ix]
             time_series = retrieve_ops_time_series(d, op_ix, time_mapping)
+            # Load Data is in MW
             ts_data = TimeSeries.values(time_series.data)
             first_tstamp = time_stamps[first(time_slices)]
             first_ts_tstamp = first(TimeSeries.timestamp(time_series.data))

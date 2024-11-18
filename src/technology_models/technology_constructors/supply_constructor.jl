@@ -147,7 +147,6 @@ function construct_technologies!(
 
     #convert technology model to string for container metadata
     tech_model = IS.strip_module_name(B)
-    @show tech_model
 
     # Capital Component of objective function
     objective_function!(container, devices, B(), tech_model)

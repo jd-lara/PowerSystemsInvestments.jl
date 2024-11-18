@@ -100,6 +100,7 @@ function add_to_expression!(
     operational_indexes = get_operational_indexes(time_mapping)
     consecutive_slices = get_consecutive_slices(time_mapping)
     expression = get_expression(container, T(), PSIP.Portfolio)
+    time_stamps = get_time_stamps(time_mapping)
 
     for d in devices
         region = PSIP.get_region(d)
@@ -107,12 +108,18 @@ function add_to_expression!(
             time_slices = consecutive_slices[op_ix]
             time_series = retrieve_ops_time_series(d, op_ix, time_mapping)
             ts_data = TimeSeries.values(time_series.data)
+            first_tstamp = time_stamps[first(time_slices)]
+            first_ts_tstamp = first(TimeSeries.timestamp(time_series.data))
+            if first_tstamp != first_ts_tstamp
+                @error(
+                    "Initial timestamp of timeseries $(IS.get_name(time_series)) of technology $(d.name) does not match with the expected representative day $op_ix"
+                )
+            end
             for (ix, t) in enumerate(time_slices)
                 _add_to_jump_expression!(expression[region, t], -1.0 * ts_data[ix])
             end
         end
     end
-    error("here")
     return
 end
 

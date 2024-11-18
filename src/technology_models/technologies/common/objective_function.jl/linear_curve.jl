@@ -245,6 +245,7 @@ function _add_linearcurve_cost!(
     tech_model::String,
 ) where {T <: OperationsVariableType}
     @warn "Add Scaling to Operational Terms to compare with Capital Terms"
+    time_mapping = get_time_mapping(container)
     for t in get_time_steps(time_mapping)
         _add_linearcurve_variable_term_to_model!(
             container,

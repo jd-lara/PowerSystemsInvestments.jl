@@ -301,9 +301,7 @@ function add_to_expression!(
 
         for step in time_steps_inv
             year = first(keys(mapping_inv))
-            #time_steps_ix = mapping_ops[(year, rep_day)]
             time_steps_ix = mapping_ops[(year, step)]
-            #time_steps_ix = mapping_ops[(year, rep_day)]
             time_step_inv = mapping_inv[year]
 
             for (ix, t) in enumerate(time_steps_ix)

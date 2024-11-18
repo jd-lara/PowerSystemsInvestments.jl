@@ -71,7 +71,6 @@ function add_expression!(
 ) where {
     T<:CumulativePowerCapacity,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
-    V<:SingleRegionBalanceModel
 } where {D<:PSIP.StorageTechnology}
     @assert !isempty(devices)
     time_steps = get_time_steps_investments(container)
@@ -118,7 +117,6 @@ function add_expression!(
 ) where {
     T<:CumulativeEnergyCapacity,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
-    V<:SingleRegionBalanceModel
 } where {D<:PSIP.StorageTechnology}
     @assert !isempty(devices)
     time_steps = get_time_steps_investments(container)
@@ -202,6 +200,7 @@ function add_to_expression!(
     T<:EnergyBalance,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:ActiveInPowerVariable,
+    W<:SingleRegionBalanceModel
 } where {D<:PSIP.StorageTechnology}
     @assert !isempty(devices)
     time_steps = get_time_steps(container)
@@ -468,9 +467,7 @@ function add_constraints!(
     charge = get_variable(container, ActiveInPowerVariable(), D, tech_model)
     discharge = get_variable(container, ActiveOutPowerVariable(), D, tech_model)
     storage_state = get_variable(container, V(), D, tech_model)
-    charge = get_variable(container, ActiveInPowerVariable(), D, tech_model)
-    discharge = get_variable(container, ActiveOutPowerVariable(), D, tech_model)
-    storage_state = get_variable(container, V(), D, tech_model)
+
 
     for d in devices
         name = PSIP.get_name(d)
@@ -510,7 +507,6 @@ function add_constraints!(
     time_steps = get_time_steps_investments(container)
 
     device_names = PSIP.get_name.(devices)
-    con_ub = add_constraints_container!(container, T(), D, device_names, time_steps, meta=tech_model)
     con_ub = add_constraints_container!(container, T(), D, device_names, time_steps, meta=tech_model)
 
     installed_cap = get_expression(container, V(), D, "ContinuousInvestment")

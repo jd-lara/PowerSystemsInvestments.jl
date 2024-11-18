@@ -286,9 +286,10 @@ function add_to_expression!(
     V<:SingleRegionBalanceModel
 } where {D<:PSIP.SupplyTechnology}
     #@assert !isempty(devices)
-    time_steps = get_time_steps(container)
     mapping_ops = OPMAPPING
     mapping_inv = INVMAPPING
+    time_steps = get_time_steps(container)
+    time_steps_inv = get_time_steps_investments(container)
     #binary = false
     #var = get_variable(container, ActivePowerVariable(), D)
     installed_cap = get_expression(container, CumulativeCapacity(), D, "ContinuousInvestment")
@@ -297,20 +298,12 @@ function add_to_expression!(
     # expression = add_expression_container!(container, expression_type, D, time_steps)
     for d in devices
         name = PSIP.get_name(d)
-        ts_name = "ops_variable_cap_factor"
-        # ts_keys = filter(x -> x.name == ts_name, IS.get_time_series_keys(d))
-        ts_keys = filter(x -> x.name == ts_name && Dates.Year(x.initial_timestamp) == Dates.Year(2024), IS.get_time_series_keys(d))
-        for ts_key in ts_keys
-            ts_type = ts_key.time_series_type
-            features = ts_key.features
-            year = features["year"]
-            #rep_day = features["rep_day"]
-            ts_data = TimeSeries.values(
-                #IS.get_time_series(ts_type, d, ts_name; year=year, rep_day=rep_day).data,
-                IS.get_time_series(ts_type, d, ts_name; year=year).data,
-            )
+
+        for step in time_steps_inv
+            year = first(keys(mapping_inv))
             #time_steps_ix = mapping_ops[(year, rep_day)]
-            time_steps_ix = mapping_ops[(year, 1)]
+            time_steps_ix = mapping_ops[(year, step)]
+            #time_steps_ix = mapping_ops[(year, rep_day)]
             time_step_inv = mapping_inv[year]
 
             for (ix, t) in enumerate(time_steps_ix)
@@ -348,9 +341,10 @@ function add_to_expression!(
     V<:MultiRegionBalanceModel
 } where {D<:PSIP.SupplyTechnology}
     #@assert !isempty(devices)
-    time_steps = get_time_steps(container)
     mapping_ops = OPMAPPING
     mapping_inv = INVMAPPING
+    time_steps = get_time_steps(container)
+    time_steps_inv = get_time_steps_investments(container)
     #binary = false
     #var = get_variable(container, ActivePowerVariable(), D)
     installed_cap = get_expression(container, CumulativeCapacity(), D, "ContinuousInvestment")
@@ -360,20 +354,9 @@ function add_to_expression!(
     for d in devices
         name = PSIP.get_name(d)
         region = PSIP.get_region(d)
-        ts_name = "ops_variable_cap_factor"
-        # ts_keys = filter(x -> x.name == ts_name, IS.get_time_series_keys(d))
-        ts_keys = filter(x -> x.name == ts_name && Dates.Year(x.initial_timestamp) == Dates.Year(2024), IS.get_time_series_keys(d))
-        for ts_key in ts_keys
-            ts_type = ts_key.time_series_type
-            features = ts_key.features
-            year = features["year"]
-            #rep_day = features["rep_day"]
-            ts_data = TimeSeries.values(
-                #IS.get_time_series(ts_type, d, ts_name; year=year, rep_day=rep_day).data,
-                IS.get_time_series(ts_type, d, ts_name; year=year).data,
-            )
-            #time_steps_ix = mapping_ops[(year, rep_day)]
-            time_steps_ix = mapping_ops[(year, 1)]
+        for step in time_steps_inv
+            year = first(keys(mapping_inv))
+            time_steps_ix = mapping_ops[(year, step)]
             time_step_inv = mapping_inv[year]
             for (ix, t) in enumerate(time_steps_ix)
                 _add_to_jump_expression!(
@@ -465,9 +448,12 @@ function add_constraints!(
 } where {D<:PSIP.SupplyTechnology{PSY.ThermalStandard}}
     # Hard Code Mapping #
     # TODO: Remove
+
     @warn("creating hard code mapping. Remove it later")
     mapping_ops = OPMAPPING
     mapping_inv = INVMAPPING
+    time_steps = get_time_steps(container)
+    time_steps_inv = get_time_steps_investments(container)
     device_names = PSIP.get_name.(devices)
     con_ub = add_constraints_container!(container, T(), D, device_names, time_steps, meta=tech_model)
 
@@ -476,13 +462,14 @@ function add_constraints!(
 
     for d in devices
         name = PSIP.get_name(d)
-        for year in time_steps_inv
+        for step in time_steps_inv
+            year = first(keys(mapping_inv))
             #time_steps_ix = mapping_ops[(year, rep_day)]
-            time_steps_ix = mapping_ops[year]
+            time_steps_ix = mapping_ops[(year, step)]
             for (ix, t) in enumerate(time_steps_ix)
                 con_ub[name, t] = JuMP.@constraint(
                     get_jump_model(container),
-                    active_power[name, t] <= installed_cap[name, year]
+                    active_power[name, t] <= installed_cap[name, step]
                 )
             end
         end

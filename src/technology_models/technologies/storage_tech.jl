@@ -67,8 +67,7 @@ function add_expression!(
     expression_type::T,
     devices::U,
     formulation::AbstractTechnologyFormulation,
-    tech_model::String,
-    transport_model::TransportModel{V}
+    tech_model::String
 ) where {
     T<:CumulativePowerCapacity,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
@@ -115,8 +114,7 @@ function add_expression!(
     expression_type::T,
     devices::U,
     formulation::AbstractTechnologyFormulation,
-    tech_model::String,
-    transport_model::TransportModel{V}
+    tech_model::String
 ) where {
     T<:CumulativeEnergyCapacity,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
@@ -164,10 +162,12 @@ function add_to_expression!(
     devices::U,
     formulation::BasicDispatch,
     tech_model::String,
+    transport_model::TransportModel{W}
 ) where {
     T<:EnergyBalance,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:ActiveOutPowerVariable,
+    W<:SingleRegionBalanceModel
 } where {D<:PSIP.StorageTechnology}
     @assert !isempty(devices)
     time_steps = get_time_steps(container)
@@ -197,6 +197,8 @@ function add_to_expression!(
     devices::U,
     formulation::BasicDispatch,
     tech_model::String,
+    tech_model::String,
+    transport_model::TransportModel{W}
 ) where {
     T<:EnergyBalance,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
@@ -207,7 +209,7 @@ function add_to_expression!(
     #binary = false
     #var = get_variable(container, ActivePowerVariable(), D)
 
-    variable = get_variable(container, V(), D, tech_model)
+    variable = get_variable(container, V(), D)
     expression = get_expression(container, T(), PSIP.Portfolio)
 
     for d in devices, t in time_steps
@@ -228,12 +230,14 @@ function add_to_expression!(
     expression_type::T,
     var::V,
     devices::U,
-    formulation::BasicDispatchFeasibility,
+    formulation::BasicDispatch,
     tech_model::String,
+    transport_model::TransportModel{W}
 ) where {
-    T<:FeasibilitySurplus,
+    T<:EnergyBalance,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:ActiveOutPowerVariable,
+    W<:MultiRegionBalanceModel
 } where {D<:PSIP.StorageTechnology}
     @assert !isempty(devices)
     time_steps = get_time_steps(container)
@@ -245,9 +249,10 @@ function add_to_expression!(
 
     for d in devices, t in time_steps
         name = PSIP.get_name(d)
+        zone = PSIP.get_region(d)
         #bus_no = PNM.get_mapped_bus_number(radial_network_reduction, PSY.get_bus(d))
         _add_to_jump_expression!(
-            expression["SingleRegion", t],
+            expression[zone, t],
             variable[name, t],
             1.0, #get_variable_multiplier(U(), V, W()),
         )
@@ -261,12 +266,14 @@ function add_to_expression!(
     expression_type::T,
     var::V,
     devices::U,
-    formulation::BasicDispatchFeasibility,
+    formulation::BasicDispatch,
     tech_model::String,
+    transport_model::TransportModel{W}
 ) where {
-    T<:FeasibilitySurplus,
+    T<:EnergyBalance,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:ActiveInPowerVariable,
+    W<:MultiRegionBalanceModel
 } where {D<:PSIP.StorageTechnology}
     @assert !isempty(devices)
     time_steps = get_time_steps(container)
@@ -278,9 +285,10 @@ function add_to_expression!(
 
     for d in devices, t in time_steps
         name = PSIP.get_name(d)
+        zone = PSIP.get_region(d)
         #bus_no = PNM.get_mapped_bus_number(radial_network_reduction, PSY.get_bus(d))
         _add_to_jump_expression!(
-            expression["SingleRegion", t],
+            expression[zone, t],
             variable[name, t],
             -1.0, #get_variable_multiplier(U(), V, W()),
         )
@@ -289,6 +297,7 @@ function add_to_expression!(
     return
 end
 
+#=
 function add_expression!(
     container::SingleOptimizationContainer,
     expression_type::T,
@@ -320,7 +329,7 @@ function add_expression!(
 
     return
 end
-
+=#
 ################### Constraints ##################
 
 function add_constraints!(
@@ -333,8 +342,7 @@ function add_constraints!(
     T<:OutputActivePowerVariableLimitsConstraint,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:ActiveOutPowerVariable,
-} where {D<:PSIP.StorageTechnology{PSY.EnergyReservoirStorage}}
-    time_steps = get_time_steps(container)
+} where {D<:PSIP.StorageTechnology}
     # Hard Code Mapping #
     # TODO: Remove
     @warn("creating hard code mapping. Remove it later")
@@ -342,31 +350,20 @@ function add_constraints!(
     mapping_inv = INVMAPPING
     device_names = PSIP.get_name.(devices)
     con_ub = add_constraints_container!(container, T(), D, device_names, time_steps, meta=tech_model)
+    con_ub = add_constraints_container!(container, T(), D, device_names, time_steps, meta=tech_model)
 
     installed_cap = get_expression(container, CumulativePowerCapacity(), D, "ContinuousInvestment")
     active_power = get_variable(container, V(), D, tech_model)
 
     for d in devices
         name = PSIP.get_name(d)
-        ts_name = "ops_variable_cap_factor"
-        # ts_keys = filter(x -> x.name == ts_name, IS.get_time_series_keys(d))
-        ts_keys = filter(x -> x.name == ts_name && Dates.Year(x.initial_timestamp) == Dates.Year(2024), IS.get_time_series_keys(d))
-        for ts_key in ts_keys
-            ts_type = ts_key.time_series_type
-            features = ts_key.features
-            year = features["year"]
-            #rep_day = features["rep_day"]
-            ts_data = TimeSeries.values(
-                #IS.get_time_series(ts_type, d, ts_name; year=year, rep_day=rep_day).data,
-                IS.get_time_series(ts_type, d, ts_name; year=year).data,
-            )
+        for year in time_steps_inv
             #time_steps_ix = mapping_ops[(year, rep_day)]
-            time_steps_ix = mapping_ops[(year, 1)]
-            time_step_inv = mapping_inv[year]
+            time_steps_ix = mapping_ops[year]
             for (ix, t) in enumerate(time_steps_ix)
                 con_ub[name, t] = JuMP.@constraint(
                     get_jump_model(container),
-                    active_power[name, t] <= installed_cap[name, time_step_inv]
+                    active_power[name, t] <= installed_cap[name, year]
                 )
             end
         end
@@ -383,8 +380,7 @@ function add_constraints!(
     T<:InputActivePowerVariableLimitsConstraint,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:ActiveInPowerVariable,
-} where {D<:PSIP.StorageTechnology{PSY.EnergyReservoirStorage}}
-    time_steps = get_time_steps(container)
+} where {D<:PSIP.StorageTechnology}
     # Hard Code Mapping #
     # TODO: Remove
     @warn("creating hard code mapping. Remove it later")
@@ -392,31 +388,20 @@ function add_constraints!(
     mapping_inv = INVMAPPING
     device_names = PSIP.get_name.(devices)
     con_ub = add_constraints_container!(container, T(), D, device_names, time_steps, meta=tech_model)
+    con_ub = add_constraints_container!(container, T(), D, device_names, time_steps, meta=tech_model)
 
     installed_cap = get_expression(container, CumulativePowerCapacity(), D, "ContinuousInvestment")
     active_power = get_variable(container, V(), D, tech_model)
 
     for d in devices
         name = PSIP.get_name(d)
-        ts_name = "ops_variable_cap_factor"
-        # ts_keys = filter(x -> x.name == ts_name, IS.get_time_series_keys(d))
-        ts_keys = filter(x -> x.name == ts_name && Dates.Year(x.initial_timestamp) == Dates.Year(2024), IS.get_time_series_keys(d))
-        for ts_key in ts_keys
-            ts_type = ts_key.time_series_type
-            features = ts_key.features
-            year = features["year"]
-            #rep_day = features["rep_day"]
-            ts_data = TimeSeries.values(
-                #IS.get_time_series(ts_type, d, ts_name; year=year, rep_day=rep_day).data,
-                IS.get_time_series(ts_type, d, ts_name; year=year).data,
-            )
+        for year in time_steps_inv
             #time_steps_ix = mapping_ops[(year, rep_day)]
-            time_steps_ix = mapping_ops[(year, 1)]
-            time_step_inv = mapping_inv[year]
+            time_steps_ix = mapping_ops[year]
             for (ix, t) in enumerate(time_steps_ix)
                 con_ub[name, t] = JuMP.@constraint(
                     get_jump_model(container),
-                    active_power[name, t] <= installed_cap[name, time_step_inv]
+                    active_power[name, t] <= installed_cap[name, year]
                 )
             end
         end
@@ -433,8 +418,7 @@ function add_constraints!(
     T<:StateofChargeLimitsConstraint,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:EnergyVariable,
-} where {D<:PSIP.StorageTechnology{PSY.EnergyReservoirStorage}}
-    time_steps = get_time_steps(container)
+} where {D<:PSIP.StorageTechnology}
     # Hard Code Mapping #
     # TODO: Remove
     @warn("creating hard code mapping. Remove it later")
@@ -442,31 +426,20 @@ function add_constraints!(
     mapping_inv = INVMAPPING
     device_names = PSIP.get_name.(devices)
     con_ub = add_constraints_container!(container, T(), D, device_names, time_steps, meta=tech_model)
+    con_ub = add_constraints_container!(container, T(), D, device_names, time_steps, meta=tech_model)
 
     installed_cap = get_expression(container, CumulativeEnergyCapacity(), D, "ContinuousInvestment")
     energy_var = get_variable(container, V(), D, tech_model)
 
     for d in devices
         name = PSIP.get_name(d)
-        ts_name = "ops_variable_cap_factor"
-        # ts_keys = filter(x -> x.name == ts_name, IS.get_time_series_keys(d))
-        ts_keys = filter(x -> x.name == ts_name && Dates.Year(x.initial_timestamp) == Dates.Year(2024), IS.get_time_series_keys(d))
-        for ts_key in ts_keys
-            ts_type = ts_key.time_series_type
-            features = ts_key.features
-            year = features["year"]
-            #rep_day = features["rep_day"]
-            ts_data = TimeSeries.values(
-                #IS.get_time_series(ts_type, d, ts_name; year=year, rep_day=rep_day).data,
-                IS.get_time_series(ts_type, d, ts_name; year=year).data,
-            )
+        for year in time_steps_inv
             #time_steps_ix = mapping_ops[(year, rep_day)]
-            time_steps_ix = mapping_ops[(year, 1)]
-            time_step_inv = mapping_inv[year]
+            time_steps_ix = mapping_ops[year]
             for (ix, t) in enumerate(time_steps_ix)
                 con_ub[name, t] = JuMP.@constraint(
                     get_jump_model(container),
-                    energy_var[name, t] <= installed_cap[name, time_step_inv]
+                    energy_var[name, t] <= installed_cap[name, year]
                 )
             end
         end
@@ -483,8 +456,8 @@ function add_constraints!(
     T<:EnergyBalanceConstraint,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:EnergyVariable,
-} where {D<:PSIP.StorageTechnology{PSY.EnergyReservoirStorage}}
-    time_steps = get_time_steps(container)
+} where {D<:PSIP.StorageTechnology}
+
     # Hard Code Mapping #
     # TODO: Remove
     @warn("creating hard code mapping. Remove it later")
@@ -496,24 +469,15 @@ function add_constraints!(
     charge = get_variable(container, ActiveInPowerVariable(), D, tech_model)
     discharge = get_variable(container, ActiveOutPowerVariable(), D, tech_model)
     storage_state = get_variable(container, V(), D, tech_model)
+    charge = get_variable(container, ActiveInPowerVariable(), D, tech_model)
+    discharge = get_variable(container, ActiveOutPowerVariable(), D, tech_model)
+    storage_state = get_variable(container, V(), D, tech_model)
 
     for d in devices
         name = PSIP.get_name(d)
-        ts_name = "ops_variable_cap_factor"
-        # ts_keys = filter(x -> x.name == ts_name, IS.get_time_series_keys(d))
-        ts_keys = filter(x -> x.name == ts_name && Dates.Year(x.initial_timestamp) == Dates.Year(2024), IS.get_time_series_keys(d))
-        for ts_key in ts_keys
-            ts_type = ts_key.time_series_type
-            features = ts_key.features
-            year = features["year"]
-            #rep_day = features["rep_day"]
-            ts_data = TimeSeries.values(
-                #IS.get_time_series(ts_type, d, ts_name; year=year, rep_day=rep_day).data,
-                IS.get_time_series(ts_type, d, ts_name; year=year).data,
-            )
+        for year in time_steps_inv
             #time_steps_ix = mapping_ops[(year, rep_day)]
-            time_steps_ix = mapping_ops[(year, 1)]
-            time_step_inv = mapping_inv[year]
+            time_steps_ix = mapping_ops[year]
             for (ix, t) in enumerate(time_steps_ix)
                 if ix == 1
                     con_ub[name, t] = JuMP.@constraint(
@@ -538,25 +502,22 @@ function add_constraints!(
     ::T,
     ::V,
     devices::U,
-    tech_model::String,
-    #::NetworkModel{X},
+    tech_model::String
 ) where {
     T<:MaximumCumulativePowerCapacity,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:CumulativePowerCapacity,
-    #X <: PM.AbstractPowerModel,
 } where {D<:PSIP.StorageTechnology}
     time_steps = get_time_steps_investments(container)
 
     device_names = PSIP.get_name.(devices)
+    con_ub = add_constraints_container!(container, T(), D, device_names, time_steps, meta=tech_model)
     con_ub = add_constraints_container!(container, T(), D, device_names, time_steps, meta=tech_model)
 
     installed_cap = get_expression(container, V(), D, "ContinuousInvestment")
 
     for d in devices
         name = PSIP.get_name(d)
-
-
         max_capacity = PSIP.get_max_cap_power(d)
         for t in time_steps
             con_ub[name, t] = JuMP.@constraint(
@@ -572,8 +533,7 @@ function add_constraints!(
     ::T,
     ::V,
     devices::U,
-    tech_model::String,
-    #::NetworkModel{X},
+    tech_model::String
 ) where {
     T<:MaximumCumulativeEnergyCapacity,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},

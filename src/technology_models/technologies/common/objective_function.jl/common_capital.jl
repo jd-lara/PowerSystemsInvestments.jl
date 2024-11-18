@@ -8,7 +8,7 @@ function add_capital_cost!(
     devices::Union{Vector{T}, IS.FlattenIteratorWrapper{T}},
     ::V,
     tech_model::String,
-) where {T<:PSIP.SupplyTechnology,U<:BuildCapacity,V<:ContinuousInvestment}
+) where {T<:PSIP.SupplyTechnology,U<:BuildCapacity,V<:InvestmentTechnologyFormulation}
     for d in devices
         capital_cost_data = PSIP.get_capital_costs(d)
         _add_cost_to_objective!(container, U(), d, capital_cost_data, V(), tech_model)
@@ -22,7 +22,7 @@ function add_capital_cost!(
     devices::Union{Vector{T}, IS.FlattenIteratorWrapper{T}},
     ::V,
     tech_model::String,
-) where {T<:GenericTransportTechnology,U<:BuildCapacity,V<:ContinuousInvestment}
+) where {T<:GenericTransportTechnology,U<:BuildCapacity,V<:InvestmentTechnologyFormulation}
     for d in devices
         capital_cost_data = PSIP.get_capital_cost(d)
         _add_cost_to_objective!(container, U(), d, capital_cost_data, V(), tech_model)
@@ -56,7 +56,7 @@ function add_fixed_om_cost!(
     devices::Union{Vector{T}, IS.FlattenIteratorWrapper{T}},
     ::V,
     tech_model::String,
-) where {T<:PSIP.SupplyTechnology,U<:CumulativeCapacity,V<:ContinuousInvestment}
+) where {T<:PSIP.SupplyTechnology,U<:CumulativeCapacity,V<:InvestmentTechnologyFormulation}
     for d in devices
         fixed_cost_data = PSIP.get_operation_costs(d)
         _add_cost_to_objective!(container, U(), d, fixed_cost_data, V(), tech_model)
@@ -70,7 +70,7 @@ function add_fixed_om_cost!(
     devices::Union{Vector{T}, IS.FlattenIteratorWrapper{T}},
     ::V,
     tech_model::String,
-) where {T<:PSIP.StorageTechnology,U<:CumulativeEnergyCapacity,V<:ContinuousInvestment}
+) where {T<:PSIP.StorageTechnology,U<:CumulativeEnergyCapacity,V<:InvestmentTechnologyFormulation}
     for d in devices
         fixed_cost_data = PSIP.get_om_costs_energy(d)
         _add_cost_to_objective!(container, U(), d, fixed_cost_data, V(), tech_model)
@@ -84,7 +84,7 @@ function add_fixed_om_cost!(
     devices::Union{Vector{T}, IS.FlattenIteratorWrapper{T}},
     ::V,
     tech_model::String,
-) where {T<:PSIP.StorageTechnology,U<:CumulativePowerCapacity,V<:ContinuousInvestment}
+) where {T<:PSIP.StorageTechnology,U<:CumulativePowerCapacity,V<:InvestmentTechnologyFormulation}
     for d in devices
         fixed_cost_data = PSIP.get_om_costs_power(d)
         _add_cost_to_objective!(container, U(), d, fixed_cost_data, V(), tech_model)
@@ -119,7 +119,7 @@ function add_capital_cost!(
     devices::Union{Vector{T}, IS.FlattenIteratorWrapper{T}},
     ::V,
     tech_model::String,
-) where {T<:PSIP.StorageTechnology,U<:BuildEnergyCapacity,V<:ContinuousInvestment}
+) where {T<:PSIP.StorageTechnology,U<:BuildEnergyCapacity,V<:InvestmentTechnologyFormulation}
     for d in devices
         capital_cost_data = PSIP.get_capital_costs_energy(d)
         _add_cost_to_objective!(container, U(), d, capital_cost_data, V(), tech_model)
@@ -137,7 +137,7 @@ function add_capital_cost!(
     devices::Union{Vector{T}, IS.FlattenIteratorWrapper{T}},
     ::V,
     tech_model::String,
-) where {T<:PSIP.StorageTechnology,U<:BuildPowerCapacity,V<:ContinuousInvestment}
+) where {T<:PSIP.StorageTechnology,U<:BuildPowerCapacity,V<:InvestmentTechnologyFormulation}
     for d in devices
         capital_cost_data = PSIP.get_capital_costs_power(d)
         _add_cost_to_objective!(container, U(), d, capital_cost_data, V(), tech_model)

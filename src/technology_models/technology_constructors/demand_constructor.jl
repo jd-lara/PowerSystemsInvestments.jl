@@ -37,14 +37,10 @@ function construct_technologies!(
 }
 
     #TODO: Port get_available_component functions from PSY
-    #devices = PSIP.get_technologies(T, p)
     devices = [PSIP.get_technology(T, p, n) for n in names]
 
-    # SupplyTotal, initialize expression, then add ActivePowerVariable in supply_constructor
+    # EnergyBalance
     add_to_expression!(container, EnergyBalance(), devices, C(), transport_model)
-
-    # DemandTotal
-    # add_to_expression!(container, DemandTotal(), devices, C())
 
     return
 end

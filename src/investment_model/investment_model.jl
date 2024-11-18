@@ -174,7 +174,6 @@ function write_results!(
     end
 
     write_model_dual_results!(store, model, index, update_timestamp, export_params)
-    write_model_parameter_results!(store, model, index, update_timestamp, export_params)
     write_model_variable_results!(store, model, index, update_timestamp, export_params)
     write_model_aux_variable_results!(store, model, index, update_timestamp, export_params)
     write_model_expression_results!(store, model, index, update_timestamp, export_params)
@@ -206,43 +205,6 @@ function write_model_dual_results!(
             resolution = export_params[:resolution]
             file_type = export_params[:file_type]
             df = to_dataframe(jump_value.(constraint), key)
-            time_col = range(index; length=horizon_count, step=resolution)
-            DataFrames.insertcols!(df, 1, :DateTime => time_col)
-            IS.Optimization.export_result(file_type, exports_path, key, index, df)
-        end
-    end
-    return
-end
-
-function write_model_parameter_results!(
-    store,
-    model::T,
-    index::Union{DecisionModelIndexType, EmulationModelIndexType},
-    update_timestamp::Dates.DateTime,
-    export_params::Union{Dict{Symbol, Any}, Nothing},
-) where {T <: InvestmentModel}
-    container = get_optimization_container(model)
-    model_name = get_name(model)
-    if export_params !== nothing
-        exports_path = joinpath(export_params[:exports_path], "parameters")
-        mkpath(exports_path)
-    end
-
-    horizon = get_horizon(get_settings(model))
-    resolution = get_resolution(get_settings(model))
-    horizon_count = horizon ÷ resolution
-
-    parameters = get_parameters(container)
-    for (key, container) in parameters
-        !should_write_resulting_value(key) && continue
-        data = calculate_parameter_values(container)
-        write_result!(store, model_name, key, index, update_timestamp, data)
-
-        if export_params !== nothing &&
-           should_export_parameter(export_params[:exports], index, model_name, key)
-            resolution = export_params[:resolution]
-            file_type = export_params[:file_type]
-            df = to_dataframe(data, key)
             time_col = range(index; length=horizon_count, step=resolution)
             DataFrames.insertcols!(df, 1, :DateTime => time_col)
             IS.Optimization.export_result(file_type, exports_path, key, index, df)

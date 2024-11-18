@@ -58,14 +58,12 @@ function initialize_storage!(
     container::ISOPT.AbstractOptimizationContainer,
     params::ModelStoreParams,
 )
-    num_of_executions = get_num_executions(params)
     time_mapping = get_time_mapping(container)
     if length(get_time_steps(time_mapping)) < 1
         error("The time step count in the optimization container is not defined")
     end
-    time_steps_count = get_time_steps(time_mapping)[end]
-    initial_time = get_initial_time(container)
-    model_interval = get_interval(params)
+    all_timestamps = get_time_stamps(time_mapping)
+    time_steps_count = get_total_operation_period_count(time_mapping)
     for type in STORE_CONTAINERS
         field_containers = getfield(container, type)
         results_container = getfield(store, type)
@@ -75,8 +73,7 @@ function initialize_storage!(
                 LOG_GROUP_MODEL_STORE
             column_names = get_column_names(key, field_container)
             data = OrderedDict{Dates.DateTime, DenseAxisArray{Float64, 2}}()
-            for timestamp in
-                range(initial_time; step=model_interval, length=num_of_executions)
+            for timestamp in all_timestamps
                 data[timestamp] = fill!(
                     DenseAxisArray{Float64}(undef, column_names..., 1:time_steps_count),
                     NaN,

@@ -11,7 +11,7 @@ get_variable_multiplier(::ActivePowerVariable, ::Type{PSIP.SupplyTechnology{PSY.
 #! format: on
 
 function get_default_time_series_names(::Type{U}) where {U <: PSIP.SupplyTechnology}
-    return ""
+    return "ops_variable_cap_factor"
 end
 
 function get_default_attributes(
@@ -276,12 +276,8 @@ function add_constraints!(
     U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
     V <: ActivePowerVariable,
 } where {D <: PSIP.SupplyTechnology{PSY.RenewableDispatch}}
+    time_mapping = get_time_mapping(container)
     time_steps = get_time_steps(time_mapping)
-    # Hard Code Mapping #
-    # TODO: Remove
-    @warn("creating hard code mapping. Remove it later")
-    mapping_ops = Dict(("2030", 1) => 1:24, ("2035", 1) => 25:48)
-    mapping_inv = Dict("2030" => 1, "2035" => 2)
     device_names = PSIP.get_name.(devices)
     con_ub = add_constraints_container!(
         container,
@@ -294,26 +290,26 @@ function add_constraints!(
 
     installed_cap = get_expression(container, CumulativeCapacity(), D, tech_model)
     active_power = get_variable(container, V(), D, tech_model)
+    operational_indexes = get_operational_indexes(time_mapping)
+    consecutive_slices = get_consecutive_slices(time_mapping)
+    inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
+    time_stamps = get_time_stamps(time_mapping)
 
-    # TODO: Update!
     for d in devices
         name = PSIP.get_name(d)
-        ts_name = "ops_variable_cap_factor"
-        ts_keys = filter(x -> x.name == ts_name, IS.get_time_series_keys(d))
-        for ts_key in ts_keys
-            ts_type = ts_key.time_series_type
-            features = ts_key.features
-            year = features["year"]
-            #rep_day = features["rep_day"]
-            ts_data = TimeSeries.values(
-                #IS.get_time_series(ts_type, d, ts_name; year=year, rep_day=rep_day).data,
-                IS.get_time_series(ts_type, d, ts_name; year=year).data,
-            )
-            #time_steps_ix = mapping_ops[(year, rep_day)]
-            time_steps_ix = mapping_ops[(year, 1)]
-            time_step_inv = mapping_inv[year]
-
-            for (ix, t) in enumerate(time_steps_ix)
+        for op_ix in operational_indexes
+            time_slices = consecutive_slices[op_ix]
+            time_series = retrieve_ops_time_series(d, op_ix, time_mapping)
+            ts_data = TimeSeries.values(time_series.data)
+            first_tstamp = time_stamps[first(time_slices)]
+            first_ts_tstamp = first(TimeSeries.timestamp(time_series.data))
+            if first_tstamp != first_ts_tstamp
+                @error(
+                    "Initial timestamp of timeseries $(IS.get_name(time_series)) of technology $name does not match with the expected representative day $op_ix"
+                )
+            end
+            time_step_inv = inverse_invest_mapping[op_ix]
+            for (ix, t) in enumerate(time_slices)
                 con_ub[name, t] = JuMP.@constraint(
                     get_jump_model(container),
                     active_power[name, t] <=
@@ -322,6 +318,7 @@ function add_constraints!(
             end
         end
     end
+    return
 end
 
 #Essentially the same constraint as above, just removed the variable capacity factor since not needed

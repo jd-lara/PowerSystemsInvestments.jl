@@ -45,33 +45,65 @@ end
         PSIP.DemandRequirement{PSY.PowerLoad},
         PSINV.StaticLoadInvestment,
         PSINV.BasicDispatch,
-        PSINV.BasicDispatchFeasibility
+        PSINV.BasicDispatchFeasibility,
     )
     vre_model = PSINV.TechnologyModel(
         PSIP.SupplyTechnology{PSY.RenewableDispatch},
         PSINV.ContinuousInvestment,
         PSINV.BasicDispatch,
-        PSINV.BasicDispatchFeasibility
+        PSINV.BasicDispatchFeasibility,
     )
     thermal_model = PSINV.TechnologyModel(
         PSIP.SupplyTechnology{PSY.ThermalStandard},
         PSINV.ContinuousInvestment,
         PSINV.BasicDispatch,
-        PSINV.BasicDispatchFeasibility
+        PSINV.BasicDispatchFeasibility,
     )
 
     # Argument Stage
 
     #DemandRequirements
-    PSINV.construct_technologies!(container, p_5bus, ["demand1", "demand2"], PSINV.ArgumentConstructStage(), DiscountedCashFlow(0.07), demand_model, transport_model)
-    PSINV.construct_technologies!(container, p_5bus, ["demand1", "demand2"], PSINV.ArgumentConstructStage(), AggregateOperatingCost(), demand_model, transport_model)
+    PSINV.construct_technologies!(
+        container,
+        p_5bus,
+        ["demand1", "demand2"],
+        PSINV.ArgumentConstructStage(),
+        DiscountedCashFlow(0.07),
+        demand_model,
+        transport_model,
+    )
+    PSINV.construct_technologies!(
+        container,
+        p_5bus,
+        ["demand1", "demand2"],
+        PSINV.ArgumentConstructStage(),
+        AggregateOperatingCost(),
+        demand_model,
+        transport_model,
+    )
 
     @test length(container.expressions) == 1
     @test length(container.variables) == 0
 
     #SupplyTechnology{RenewableDispatch}
-    PSINV.construct_technologies!(container, p_5bus, ["wind"], PSINV.ArgumentConstructStage(), DiscountedCashFlow(0.07), vre_model, transport_model)
-    PSINV.construct_technologies!(container, p_5bus, ["wind"], PSINV.ArgumentConstructStage(), AggregateOperatingCost(), vre_model, transport_model)
+    PSINV.construct_technologies!(
+        container,
+        p_5bus,
+        ["wind"],
+        PSINV.ArgumentConstructStage(),
+        DiscountedCashFlow(0.07),
+        vre_model,
+        transport_model,
+    )
+    PSINV.construct_technologies!(
+        container,
+        p_5bus,
+        ["wind"],
+        PSINV.ArgumentConstructStage(),
+        AggregateOperatingCost(),
+        vre_model,
+        transport_model,
+    )
 
     @test length(container.expressions) == 2
     @test length(container.variables) == 2
@@ -101,8 +133,24 @@ end
     @test length(e["wind", :]) == length(PSINV.get_time_steps_investments(container))
 
     #SupplyTechnology{ThermalStandard}
-    PSINV.construct_technologies!(container, p_5bus, ["cheap_thermal", "expensive_thermal"], PSINV.ArgumentConstructStage(), DiscountedCashFlow(0.07), thermal_model, transport_model)
-    PSINV.construct_technologies!(container, p_5bus, ["cheap_thermal", "expensive_thermal"], PSINV.ArgumentConstructStage(), AggregateOperatingCost(), thermal_model, transport_model)
+    PSINV.construct_technologies!(
+        container,
+        p_5bus,
+        ["cheap_thermal", "expensive_thermal"],
+        PSINV.ArgumentConstructStage(),
+        DiscountedCashFlow(0.07),
+        thermal_model,
+        transport_model,
+    )
+    PSINV.construct_technologies!(
+        container,
+        p_5bus,
+        ["cheap_thermal", "expensive_thermal"],
+        PSINV.ArgumentConstructStage(),
+        AggregateOperatingCost(),
+        thermal_model,
+        transport_model,
+    )
 
     @test length(container.expressions) == 3
     @test length(container.variables) == 4
@@ -128,7 +176,7 @@ end
         container,
         PSINV.CumulativeCapacity(),
         PSIP.SupplyTechnology{PSY.ThermalStandard},
-        "ContinuousInvestment"
+        "ContinuousInvestment",
     )
     @test length(e["expensive_thermal", :]) ==
           length(PSINV.get_time_steps_investments(container))
@@ -138,14 +186,46 @@ end
     # Model Stage
 
     #DemandRequirement{PowerLoad}
-    PSINV.construct_technologies!(container, p_5bus, ["demand1", "demand2"], PSINV.ArgumentConstructStage(), DiscountedCashFlow(0.07), demand_model, transport_model)
-    PSINV.construct_technologies!(container, p_5bus, ["demand1", "demand2"], PSINV.ArgumentConstructStage(), AggregateOperatingCost(), demand_model, transport_model)
+    PSINV.construct_technologies!(
+        container,
+        p_5bus,
+        ["demand1", "demand2"],
+        PSINV.ArgumentConstructStage(),
+        DiscountedCashFlow(0.07),
+        demand_model,
+        transport_model,
+    )
+    PSINV.construct_technologies!(
+        container,
+        p_5bus,
+        ["demand1", "demand2"],
+        PSINV.ArgumentConstructStage(),
+        AggregateOperatingCost(),
+        demand_model,
+        transport_model,
+    )
 
     @test length(container.constraints) == 0
 
     #SupplyTechnology{RenewableDispatch}
-    PSINV.construct_technologies!(container, p_5bus, ["wind"], PSINV.ModelConstructStage(), DiscountedCashFlow(0.07), vre_model, transport_model)
-    PSINV.construct_technologies!(container, p_5bus, ["wind"], PSINV.ModelConstructStage(), AggregateOperatingCost(), vre_model, transport_model)
+    PSINV.construct_technologies!(
+        container,
+        p_5bus,
+        ["wind"],
+        PSINV.ModelConstructStage(),
+        DiscountedCashFlow(0.07),
+        vre_model,
+        transport_model,
+    )
+    PSINV.construct_technologies!(
+        container,
+        p_5bus,
+        ["wind"],
+        PSINV.ModelConstructStage(),
+        AggregateOperatingCost(),
+        vre_model,
+        transport_model,
+    )
 
     @test length(container.constraints) == 2
 
@@ -166,8 +246,24 @@ end
     @test length(c) == length(PSINV.get_time_steps_investments(container))
 
     #SupplyTechnology{RenewableDispatch}
-    PSINV.construct_technologies!(container, p_5bus, ["cheap_thermal", "expensive_thermal"], PSINV.ModelConstructStage(), DiscountedCashFlow(0.07), thermal_model, transport_model)
-    PSINV.construct_technologies!(container, p_5bus, ["cheap_thermal", "expensive_thermal"], PSINV.ModelConstructStage(), AggregateOperatingCost(), thermal_model, transport_model)
+    PSINV.construct_technologies!(
+        container,
+        p_5bus,
+        ["cheap_thermal", "expensive_thermal"],
+        PSINV.ModelConstructStage(),
+        DiscountedCashFlow(0.07),
+        thermal_model,
+        transport_model,
+    )
+    PSINV.construct_technologies!(
+        container,
+        p_5bus,
+        ["cheap_thermal", "expensive_thermal"],
+        PSINV.ModelConstructStage(),
+        AggregateOperatingCost(),
+        thermal_model,
+        transport_model,
+    )
 
     @test length(container.constraints) == 4
 
@@ -190,6 +286,12 @@ end
         PSINV.BasicDispatchFeasibility;
     )
 
-    @test_throws MethodError PSINV.construct_technologies!(container, p_5bus, ["cheap_thermal"], PSINV.ArgumentConstructStage(), DiscountedCashFlow(0.07), unit_thermal_model)
-
+    @test_throws MethodError PSINV.construct_technologies!(
+        container,
+        p_5bus,
+        ["cheap_thermal"],
+        PSINV.ArgumentConstructStage(),
+        DiscountedCashFlow(0.07),
+        unit_thermal_model,
+    )
 end

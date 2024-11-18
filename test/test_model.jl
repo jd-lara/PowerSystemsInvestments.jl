@@ -1,5 +1,4 @@
 @testset "Build and solve" begin
-
     p_5bus = test_data()
 
     template = InvestmentModelTemplate(
@@ -30,32 +29,71 @@
         PSINV.BasicDispatchFeasibility,
     )
 
-    @test_throws MethodError InvestmentModel(template, PSINV.SingleInstanceSolve, p_5bus; bad_kwarg = 10)
+    @test_throws MethodError InvestmentModel(
+        template,
+        PSINV.SingleInstanceSolve,
+        p_5bus;
+        bad_kwarg=10,
+    )
 
-    m = InvestmentModel(template, PSINV.SingleInstanceSolve, p_5bus; horizon=Dates.Millisecond(100), resolution=Dates.Millisecond(1), optimizer=HiGHS.Optimizer, portfolio_to_file=false);
+    m = InvestmentModel(
+        template,
+        PSINV.SingleInstanceSolve,
+        p_5bus;
+        horizon=Dates.Millisecond(100),
+        resolution=Dates.Millisecond(1),
+        optimizer=HiGHS.Optimizer,
+        portfolio_to_file=false,
+    )
 
     tech_models = template.technology_models
     tech_models[thermal_model] = ["cheap_thermal", "expensive_thermal"]
     tech_models[vre_model] = ["wind"]
     tech_models[demand_model] = ["demand1", "demand2"]
 
-    @test build!(m; output_dir= mktempdir(; cleanup = true)) == PSINV.ModelBuildStatus.BUILT
+    @test build!(m; output_dir=mktempdir(; cleanup=true)) == PSINV.ModelBuildStatus.BUILT
 
     @test solve!(m) == PSINV.RunStatus.SUCCESSFULLY_FINALIZED
 
     res = OptimizationProblemResults(m)
     obj = res.optimizer_stats[1, :objective_value] #IS.get_objective_value(res) not working for some reason?
-    @test isapprox(obj, 9.077647543420135e9; atol = 1000000.0)
+    @test isapprox(obj, 9.077647543420135e9; atol=1000000.0)
 
     vars = res.variable_values
-    @test PSINV.VariableKey(ActivePowerVariable, PSIP.SupplyTechnology{ThermalStandard}, "ContinuousInvestment" )in keys(vars)
-    @test PSINV.VariableKey(ActivePowerVariable, PSIP.SupplyTechnology{RenewableDispatch}, "ContinuousInvestment") in keys(vars)
+    @test PSINV.VariableKey(
+        ActivePowerVariable,
+        PSIP.SupplyTechnology{ThermalStandard},
+        "ContinuousInvestment",
+    ) in keys(vars)
+    @test PSINV.VariableKey(
+        ActivePowerVariable,
+        PSIP.SupplyTechnology{RenewableDispatch},
+        "ContinuousInvestment",
+    ) in keys(vars)
     # Note that a lot of the read variable functions and stuff from IS don't work for investment variables because they are trying to use the operations timesteps
     #@test size(IS.Optimization.read_variable(res, PSINV.VariableKey(BuildCapacity, PSIP.SupplyTechnology{ThermalStandard}))) == (2, 2)
     #@test size(IS.Optimization.read_variable(res, PSINV.VariableKey(BuildCapacity, PSIP.SupplyTechnology{RenewableDispatch}))) == (2, 1)
     # Extra column for datetime
-    @test size(IS.Optimization.read_variable(res, PSINV.VariableKey(ActivePowerVariable, PSIP.SupplyTechnology{ThermalStandard}, "ContinuousInvestment"))) == (48, 3)
-    @test size(IS.Optimization.read_variable(res, PSINV.VariableKey(ActivePowerVariable, PSIP.SupplyTechnology{RenewableDispatch}, "ContinuousInvestment"))) == (48, 2)
+    @test size(
+        IS.Optimization.read_variable(
+            res,
+            PSINV.VariableKey(
+                ActivePowerVariable,
+                PSIP.SupplyTechnology{ThermalStandard},
+                "ContinuousInvestment",
+            ),
+        ),
+    ) == (48, 3)
+    @test size(
+        IS.Optimization.read_variable(
+            res,
+            PSINV.VariableKey(
+                ActivePowerVariable,
+                PSIP.SupplyTechnology{RenewableDispatch},
+                "ContinuousInvestment",
+            ),
+        ),
+    ) == (48, 2)
     #@test size(IS.Optimization.read_expression(res, PSINV.VariableKey(CumulativeCapacity, PSIP.SupplyTechnology{RenewableDispatch}))) == (2, 2)
 
 end
@@ -106,9 +144,17 @@ end
         PSINV.BasicDispatchFeasibility,
     )
 
-    m = InvestmentModel(template, PSINV.SingleInstanceSolve, p_5bus; horizon=Dates.Millisecond(100), resolution=Dates.Millisecond(1), optimizer=HiGHS.Optimizer, portfolio_to_file=false);
+    m = InvestmentModel(
+        template,
+        PSINV.SingleInstanceSolve,
+        p_5bus;
+        horizon=Dates.Millisecond(100),
+        resolution=Dates.Millisecond(1),
+        optimizer=HiGHS.Optimizer,
+        portfolio_to_file=false,
+    )
 
-    @test build!(m; output_dir= mktempdir(; cleanup = true)) == PSINV.ModelBuildStatus.BUILT
+    @test build!(m; output_dir=mktempdir(; cleanup=true)) == PSINV.ModelBuildStatus.BUILT
     @test solve!(m) == PSINV.RunStatus.SUCCESSFULLY_FINALIZED
 
     res = OptimizationProblemResults(m)
@@ -125,5 +171,4 @@ end
     #@test isa(PSINV.get_resolution(res), Dates.TimePeriod)
     @test isa(IS.Optimization.get_source_data(res), PSIP.Portfolio)
     @test length(PSINV.get_timestamps(res)) == 48
-
 end

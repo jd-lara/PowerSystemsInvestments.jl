@@ -26,7 +26,7 @@ const PROBLEM_LOG_FILENAME = "investment_problem.log"
 const GenericTransportTechnology = Union{
     PSIP.ACTransportTechnology,
     PSIP.ExistingTransportTechnology,
-    PSIP.HVDCTransportTechnology
+    PSIP.HVDCTransportTechnology,
 }
 
 # Enums

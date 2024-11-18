@@ -869,7 +869,7 @@ end
 function _make_system_expressions!(
     container::SingleOptimizationContainer,
     ::Type{MultiRegionBalanceModel},
-    port::PSIP.Portfolio
+    port::PSIP.Portfolio,
 )
     regions = PSIP.get_regions(PSIP.Zone, port)
     @error "Hard Code TimeSteps"
@@ -903,7 +903,10 @@ end
 
 ###################################Initial Conditions Containers############################
 
-function calculate_aux_variables!(container::SingleOptimizationContainer, port::PSIP.Portfolio)
+function calculate_aux_variables!(
+    container::SingleOptimizationContainer,
+    port::PSIP.Portfolio,
+)
     aux_vars = get_aux_variables(container)
     for key in keys(aux_vars)
         calculate_aux_variable_value!(container, key, port)
@@ -957,10 +960,14 @@ function build_model!(
     for (i, name_list) in enumerate(tech_names)
         tech_model = tech_templates[i]
         @debug "Building Model for $(get_technology_type(tech_model)) with $(get_investment_formulation(tech_model)) investment formulation" _group =
-        LOG_GROUP_OPTIMIZATION_CONTAINER
+            LOG_GROUP_OPTIMIZATION_CONTAINER
         TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(get_technology_type(tech_model))" begin
             if validate_available_technologies(tech_model, port)
-                for mod in [template.capital_model, template.operation_model, template.feasibility_model]
+                for mod in [
+                    template.capital_model,
+                    template.operation_model,
+                    template.feasibility_model,
+                ]
                     construct_technologies!(
                         container,
                         port,
@@ -993,16 +1000,20 @@ function build_model!(
     =#
 
     # Transportation Model Arguments
-    
+
     branch_names = collect(values(template.branch_models))
     branch_templates = collect(keys(template.branch_models))
     for (i, name_list) in enumerate(branch_names)
-        branch_model= branch_templates[i]
+        branch_model = branch_templates[i]
         @debug "Building Arguments for $(get_technology_type(branch_model)) with $(get_investment_formulation(branch_model)) formulation" _group =
             LOG_GROUP_OPTIMIZATION_CONTAINER
         TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(get_technology_type(branch_model))" begin
             if validate_available_technologies(branch_model, port)
-                for mod in [template.capital_model, template.operation_model, template.feasibility_model]
+                for mod in [
+                    template.capital_model,
+                    template.operation_model,
+                    template.feasibility_model,
+                ]
                     construct_technologies!(
                         container,
                         port,
@@ -1018,7 +1029,7 @@ function build_model!(
                 LOG_GROUP_OPTIMIZATION_CONTAINER
         end
     end
-    
+
     # Constructor for transport model, adds EnergyBalanceConstraint
     TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(transport_model)" begin
         @debug "Building $(transport_model) transport formulation" _group =
@@ -1035,7 +1046,11 @@ function build_model!(
             LOG_GROUP_OPTIMIZATION_CONTAINER
         TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(get_technology_type(tech_model))" begin
             if validate_available_technologies(tech_model, port)
-                for mod in [template.capital_model, template.operation_model, template.feasibility_model]
+                for mod in [
+                    template.capital_model,
+                    template.operation_model,
+                    template.feasibility_model,
+                ]
                     construct_technologies!(
                         container,
                         port,
@@ -1052,14 +1067,17 @@ function build_model!(
         end
     end
 
-
     for (i, name_list) in enumerate(branch_names)
         branch_model = branch_templates[i]
         @debug "Building Arguments for $(get_technology_type(branch_model)) with $(get_investment_formulation(branch_model)) formulation" _group =
             LOG_GROUP_OPTIMIZATION_CONTAINER
         TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(get_technology_type(branch_model))" begin
             if validate_available_technologies(branch_model, port)
-                for mod in [template.capital_model, template.operation_model, template.feasibility_model]
+                for mod in [
+                    template.capital_model,
+                    template.operation_model,
+                    template.feasibility_model,
+                ]
                     construct_technologies!(
                         container,
                         port,
@@ -1101,10 +1119,7 @@ end
 """
 Default solve method for OptimizationContainer
 """
-function solve_model!(
-    container::SingleOptimizationContainer,
-    port::PSIP.Portfolio
-)
+function solve_model!(container::SingleOptimizationContainer, port::PSIP.Portfolio)
     optimizer_stats = get_optimizer_stats(container)
 
     jump_model = get_jump_model(container)
@@ -1161,7 +1176,10 @@ end
 """
 Exports the OpModel JuMP object in MathOptFormat
 """
-function serialize_optimization_model(container::SingleOptimizationContainer, save_path::String)
+function serialize_optimization_model(
+    container::SingleOptimizationContainer,
+    save_path::String,
+)
     serialize_jump_optimization_model(get_jump_model(container), save_path)
     return
 end
@@ -1184,17 +1202,14 @@ function get_all_variable_keys(container::SingleOptimizationContainer)
 end
 
 function check_duplicate_names(
-    names::Vector{String}, 
+    names::Vector{String},
     container::SingleOptimizationContainer,
     variable_type::T,
-    tech_type::Type{D}
-) where {
-    T <: ISOPT.VariableType,
-    D <: PSIP.Technology
-}
+    tech_type::Type{D},
+) where {T <: ISOPT.VariableType, D <: PSIP.Technology}
     duplicate = false
     n = ""
-    try 
+    try
         variable = get_variable(container, variable_type, tech_type)
         ax = axes(variable)
         for name in names

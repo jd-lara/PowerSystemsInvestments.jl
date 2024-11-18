@@ -4,12 +4,12 @@ function get_default_time_series_names(
     ::Type{W},
     ::Type{X},
 ) where {
-    U<:PSIP.DemandRequirement,
-    V<:InvestmentTechnologyFormulation,
-    W<:OperationsTechnologyFormulation,
-    X<:FeasibilityTechnologyFormulation,
+    U <: PSIP.DemandRequirement,
+    V <: InvestmentTechnologyFormulation,
+    W <: OperationsTechnologyFormulation,
+    X <: FeasibilityTechnologyFormulation,
 }
-    return Dict{Type{<:TimeSeriesParameter},String}()
+    return Dict{Type{<:TimeSeriesParameter}, String}()
 end
 
 function get_default_attributes(
@@ -18,12 +18,12 @@ function get_default_attributes(
     ::Type{W},
     ::Type{X},
 ) where {
-    U<:PSIP.DemandRequirement,
-    V<:InvestmentTechnologyFormulation,
-    W<:OperationsTechnologyFormulation,
-    X<:FeasibilityTechnologyFormulation,
+    U <: PSIP.DemandRequirement,
+    V <: InvestmentTechnologyFormulation,
+    W <: OperationsTechnologyFormulation,
+    X <: FeasibilityTechnologyFormulation,
 }
-    return Dict{String,Any}()
+    return Dict{String, Any}()
 end
 
 ################### Variables ####################
@@ -40,10 +40,10 @@ function add_to_expression!(
     transport_model::TransportModel{V},
     #tech_model::String,
 ) where {
-    T<:EnergyBalance,
-    U<:Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
-    V<:SingleRegionBalanceModel
-} where {D<:PSIP.DemandRequirement}
+    T <: EnergyBalance,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+    V <: SingleRegionBalanceModel,
+} where {D <: PSIP.DemandRequirement}
     #@assert !isempty(devices)
     time_steps = get_time_steps(container)
     #binary = false
@@ -82,14 +82,16 @@ function add_to_expression!(
 
             multiplier = -1.0
             for (ix, t) in enumerate(time_steps_ix)
-                _add_to_jump_expression!(expression["SingleRegion", t], ts_data[ix] * multiplier)
+                _add_to_jump_expression!(
+                    expression["SingleRegion", t],
+                    ts_data[ix] * multiplier,
+                )
             end
         end
     end
 
     return
 end
-
 
 function add_to_expression!(
     container::SingleOptimizationContainer,
@@ -99,10 +101,10 @@ function add_to_expression!(
     transport_model::TransportModel{V},
     #tech_model::String,
 ) where {
-    T<:EnergyBalance,
-    U<:Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
-    V<:MultiRegionBalanceModel
-} where {D<:PSIP.DemandRequirement}
+    T <: EnergyBalance,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+    V <: MultiRegionBalanceModel,
+} where {D <: PSIP.DemandRequirement}
     #@assert !isempty(devices)
     time_steps = get_time_steps(container)
     #binary = false
@@ -174,8 +176,8 @@ function add_constraints!(
     #model,
     #::NetworkModel{X},
 ) where {
-    T<:SupplyDemandBalance,
-    U<:PSIP.DemandRequirement{PSY.PowerLoad},
+    T <: SupplyDemandBalance,
+    U <: PSIP.DemandRequirement{PSY.PowerLoad},
     #X <: PM.AbstractPowerModel,
 }
     # TODO: Remove technologies from the expression definition for these and add corresponding get_expression functions
@@ -187,6 +189,7 @@ function add_constraints!(
     for t in time_steps
         #TODO: Make this generic
 
-        energy_balance[t] = JuMP.@constraint(get_jump_model(container), supply["SingleRegion", t] >= 0)
+        energy_balance[t] =
+            JuMP.@constraint(get_jump_model(container), supply["SingleRegion", t] >= 0)
     end
 end

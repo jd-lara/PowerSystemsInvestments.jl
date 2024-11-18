@@ -16,12 +16,12 @@ function get_default_time_series_names(
     ::Type{W},
     ::Type{X},
 ) where {
-    U<:GenericTransportTechnology,
-    V<:InvestmentTechnologyFormulation,
-    W<:OperationsTechnologyFormulation,
-    X<:FeasibilityTechnologyFormulation,
+    U <: GenericTransportTechnology,
+    V <: InvestmentTechnologyFormulation,
+    W <: OperationsTechnologyFormulation,
+    X <: FeasibilityTechnologyFormulation,
 }
-    return Dict{Type{<:TimeSeriesParameter},String}()
+    return Dict{Type{<:TimeSeriesParameter}, String}()
 end
 
 function get_default_attributes(
@@ -30,12 +30,12 @@ function get_default_attributes(
     ::Type{W},
     ::Type{X},
 ) where {
-    U<:GenericTransportTechnology,
-    V<:InvestmentTechnologyFormulation,
-    W<:OperationsTechnologyFormulation,
-    X<:FeasibilityTechnologyFormulation,
+    U <: GenericTransportTechnology,
+    V <: InvestmentTechnologyFormulation,
+    W <: OperationsTechnologyFormulation,
+    X <: FeasibilityTechnologyFormulation,
 }
-    return Dict{String,Any}()
+    return Dict{String, Any}()
 end
 
 ################### Variables ####################
@@ -47,11 +47,11 @@ function add_expression!(
     expression_type::T,
     devices::U,
     formulation::AbstractTechnologyFormulation,
-    tech_model::String
+    tech_model::String,
 ) where {
-    T<:CumulativeCapacity,
-    U<:Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
-} where {D<:GenericTransportTechnology}
+    T <: CumulativeCapacity,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+} where {D <: GenericTransportTechnology}
     #@assert !isempty(devices)
     time_steps = get_time_steps_investments(container)
     binary = false
@@ -64,7 +64,7 @@ function add_expression!(
         D,
         [PSIP.get_name(d) for d in devices],
         time_steps,
-        meta=tech_model
+        meta=tech_model,
     )
 
     # TODO: Move to add_to_expression?
@@ -92,12 +92,12 @@ function add_to_expression!(
     devices::U,
     formulation::BasicDispatch,
     tech_model::String,
-    transport_model::TransportModel{V}
+    transport_model::TransportModel{V},
 ) where {
-    T<:EnergyBalance,
-    U<:Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
-    V<:MultiRegionBalanceModel
-} where {D<:GenericTransportTechnology}
+    T <: EnergyBalance,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+    V <: MultiRegionBalanceModel,
+} where {D <: GenericTransportTechnology}
     #@assert !isempty(devices)
     time_steps = get_time_steps(container)
     #binary = false
@@ -121,7 +121,7 @@ function add_to_expression!(
         _add_to_jump_expression!(
             expression[end_region, t],
             variable[name, t],
-            (1.0-losses), #get_variable_multiplier(U(), V, W()),
+            (1.0 - losses), #get_variable_multiplier(U(), V, W()),
         )
     end
 
@@ -133,12 +133,12 @@ function add_constraints!(
     ::T,
     ::V,
     devices::U,
-    tech_model::String
+    tech_model::String,
 ) where {
-    T<:ActivePowerLimitsConstraint,
-    U<:Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
-    V<:ActivePowerVariable,
-} where {D<:GenericTransportTechnology}
+    T <: ActivePowerLimitsConstraint,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+    V <: ActivePowerVariable,
+} where {D <: GenericTransportTechnology}
     time_steps = get_time_steps(container)
     # Hard Code Mapping #
     # TODO: Remove
@@ -146,7 +146,14 @@ function add_constraints!(
     mapping_ops = Dict(("2030", 1) => 1:24, ("2035", 1) => 25:48)
     mapping_inv = Dict("2030" => 1, "2035" => 2)
     device_names = PSIP.get_name.(devices)
-    con_ub = add_constraints_container!(container, T(), D, device_names, time_steps, meta=tech_model)
+    con_ub = add_constraints_container!(
+        container,
+        T(),
+        D,
+        device_names,
+        time_steps,
+        meta=tech_model,
+    )
 
     installed_cap = get_expression(container, CumulativeCapacity(), D, tech_model)
     active_power = get_variable(container, V(), D, tech_model)
@@ -183,18 +190,25 @@ function add_constraints!(
     ::T,
     ::V,
     devices::U,
-    tech_model::String
+    tech_model::String,
     #::NetworkModel{X},
 ) where {
-    T<:MaximumCumulativeCapacity,
-    U<:Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
-    V<:CumulativeCapacity,
+    T <: MaximumCumulativeCapacity,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+    V <: CumulativeCapacity,
     #X <: PM.AbstractPowerModel,
-} where {D<:GenericTransportTechnology}
+} where {D <: GenericTransportTechnology}
     time_steps = get_time_steps_investments(container)
 
     device_names = PSIP.get_name.(devices)
-    con_ub = add_constraints_container!(container, T(), D, device_names, time_steps, meta=tech_model)
+    con_ub = add_constraints_container!(
+        container,
+        T(),
+        D,
+        device_names,
+        time_steps,
+        meta=tech_model,
+    )
 
     installed_cap = get_expression(container, CumulativeCapacity(), D, tech_model)
 
@@ -205,7 +219,7 @@ function add_constraints!(
         for t in time_steps
             con_ub[name, t] = JuMP.@constraint(
                 get_jump_model(container),
-                installed_cap[name, t] <= max_capacity+init_cap
+                installed_cap[name, t] <= max_capacity + init_cap
             )
         end
     end
@@ -235,7 +249,7 @@ function objective_function!(
     #DeviceModel{T, U},
     formulation::ContinuousInvestment, #Type{<:PM.AbstractPowerModel},
     tech_model::String,
-) where {T<:GenericTransportTechnology}#, U <: BuildCapacity}
+) where {T <: GenericTransportTechnology}#, U <: BuildCapacity}
     add_capital_cost!(container, BuildCapacity(), devices, formulation, tech_model) #U()
     #add_fixed_om_cost!(container, CumulativeCapacity(), devices, formulation, tech_model)
     return

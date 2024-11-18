@@ -12,6 +12,7 @@ using HiGHS
 const IS = InfrastructureSystems
 const PSIP = PowerSystemsInvestmentsPortfolios
 const PSINV = PowerSystemsInvestments
+const PSIN = PowerSystemsInvestments
 const PSY = PowerSystems
 
 include("test_utils/test_data.jl")

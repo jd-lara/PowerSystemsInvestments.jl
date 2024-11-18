@@ -112,6 +112,7 @@ get_investment_time_steps(tm::TimeMapping) = 1:get_total_investment_period_count
 get_consecutive_slices(tm::TimeMapping) = tm.operation.consecutive_slices
 get_operational_indexes(tm::TimeMapping) = tm.operation.operational_indexes
 get_time_stamps(tm::TimeMapping) = tm.operation.time_stamps
+get_inverse_invest_mapping(tm::TimeMapping) = tm.operation.inverse_invest_mapping
 
 function TimeMapping(::Nothing)
     return TimeMapping(InvestmentIntervals(nothing), OperationalPeriods(nothing))

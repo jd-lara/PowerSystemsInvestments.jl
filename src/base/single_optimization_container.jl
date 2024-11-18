@@ -144,10 +144,6 @@ function _finalize_jump_model!(container::SingleOptimizationContainer, settings:
     end
 
     JuMPmodel = PSIN.get_jump_model(container)
-    @warn "possibly remove"
-    warm_start_enabled = get_warm_start(settings)
-    solver_supports_warm_start = _validate_warm_start_support(JuMPmodel, warm_start_enabled)
-    set_warm_start!(settings, solver_supports_warm_start)
 
     JuMP.set_string_names_on_creation(JuMPmodel, get_store_variable_names(settings))
 

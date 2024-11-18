@@ -1,46 +1,83 @@
 function construct_technologies!(
     container::SingleOptimizationContainer,
     p::PSIP.Portfolio,
+    names::Vector{String},
     ::ArgumentConstructStage,
-    model::CapitalCostModel,
-    technology_model::TechnologyModel{T, B, C},
-    # network_model::NetworkModel{<:PM.AbstractActivePowerModel},
-) where {T <: PSIP.StorageTechnology, B <: ContinuousInvestment, C <: BasicDispatch}
+    ::CapitalCostModel,
+    technology_model::TechnologyModel{T, B, C, D},
+    transport_model::TransportModel{<:AbstractTransportAggregation},
+) where {
+    T <: PSIP.StorageTechnology,
+    B <: ContinuousInvestment,
+    C <: BasicDispatch,
+    D <: FeasibilityTechnologyFormulation,
+}
 
     #TODO: Port get_available_component functions from PSY
-    devices = PSIP.get_technologies(T, p)
+    #devices = PSIP.get_technologies(T, p)
+    devices = [PSIP.get_technology(T, p, n) for n in names]
+
+    #convert technology model to string for container metadata
+    tech_model = IS.strip_module_name(B)
 
     # BuildCapacity variables
-    add_variable!(container, BuildEnergyCapacity(), devices, B())
-    add_variable!(container, BuildPowerCapacity(), devices, B())
+    add_variable!(container, BuildEnergyCapacity(), devices, B(), tech_model)
+    add_variable!(container, BuildPowerCapacity(), devices, B(), tech_model)
 
     # CumulativeCapacity expressions
-    add_expression!(container, CumulativePowerCapacity(), devices, B())
-    add_expression!(container, CumulativeEnergyCapacity(), devices, B())
+    add_expression!(container, CumulativePowerCapacity(), devices, B(), tech_model)
+    add_expression!(container, CumulativeEnergyCapacity(), devices, B(), tech_model)
     return
 end
 
 function construct_technologies!(
     container::SingleOptimizationContainer,
     p::PSIP.Portfolio,
+    names::Vector{String},
     ::ArgumentConstructStage,
     model::OperationCostModel,
-    technology_model::TechnologyModel{T, B, C},
-    # network_model::NetworkModel{<:PM.AbstractActivePowerModel},
-) where {T <: PSIP.StorageTechnology, B <: ContinuousInvestment, C <: BasicDispatch}
+    technology_model::TechnologyModel{T, B, C, D},
+    transport_model::TransportModel{<:AbstractTransportAggregation},
+) where {
+    T <: PSIP.StorageTechnology,
+    B <: ContinuousInvestment,
+    C <: BasicDispatch,
+    D <: FeasibilityTechnologyFormulation,
+}
 
     #TODO: Port get_available_component functions from PSY
-    devices = PSIP.get_technologies(T, p)
+    #devices = PSIP.get_technologies(T, p)
+    devices = [PSIP.get_technology(T, p, n) for n in names]
+
+    #convert technology model to string for container metadata
+    tech_model = IS.strip_module_name(B)
+
     #ActivePowerVariables
-    add_variable!(container, ActiveInPowerVariable(), devices, C())
-    add_variable!(container, ActiveOutPowerVariable(), devices, C())
+    add_variable!(container, ActiveInPowerVariable(), devices, C(), tech_model)
+    add_variable!(container, ActiveOutPowerVariable(), devices, C(), tech_model)
 
-    #EnergyVariable
-    add_variable!(container, EnergyVariable(), devices, C())
+    # EnergyVariable
+    add_variable!(container, EnergyVariable(), devices, C(), tech_model)
 
-    # SupplyTotal
-    add_to_expression!(container, SupplyTotal(), devices, C())
-    add_to_expression!(container, DemandTotal(), devices, C())
+    # EnergyBalance
+    add_to_expression!(
+        container,
+        EnergyBalance(),
+        ActiveInPowerVariable(),
+        devices,
+        C(),
+        tech_model,
+        transport_model,
+    )
+    add_to_expression!(
+        container,
+        EnergyBalance(),
+        ActiveOutPowerVariable(),
+        devices,
+        C(),
+        tech_model,
+        transport_model,
+    )
 
     return
 end
@@ -48,14 +85,21 @@ end
 function construct_technologies!(
     container::SingleOptimizationContainer,
     p::PSIP.Portfolio,
+    names::Vector{String},
     ::ArgumentConstructStage,
     model::FeasibilityModel,
-    technology_model::TechnologyModel{T, B, C},
-    # network_model::NetworkModel{<:PM.AbstractActivePowerModel},
-) where {T <: PSIP.StorageTechnology, B <: ContinuousInvestment, C <: BasicDispatch}
+    technology_model::TechnologyModel{T, B, C, D},
+    transport_model::TransportModel{<:AbstractTransportAggregation},
+) where {
+    T <: PSIP.StorageTechnology,
+    B <: ContinuousInvestment,
+    C <: BasicDispatch,
+    D <: FeasibilityTechnologyFormulation,
+}
 
     #TODO: Port get_available_component functions from PSY
-    devices = PSIP.get_technologies(T, p)
+    #devices = PSIP.get_technologies(T, p)
+    devices = [PSIP.get_technology(T, p, n) for n in names]
 
     return
 end
@@ -63,23 +107,28 @@ end
 function construct_technologies!(
     container::SingleOptimizationContainer,
     p::PSIP.Portfolio,
+    names::Vector{String},
     ::ModelConstructStage,
     model::CapitalCostModel,
-    ::ModelConstructStage,
-    technology_model::TechnologyModel{T, B, C},
-    # network_model::NetworkModel{<:PM.AbstractActivePowerModel},
-) where {T <: PSIP.StorageTechnology, B <: ContinuousInvestment, C <: BasicDispatch}
-    devices = PSIP.get_technologies(T, p)
+    technology_model::TechnologyModel{T, B, C, D},
+    transport_model::TransportModel{<:AbstractTransportAggregation},
+) where {
+    T <: PSIP.StorageTechnology,
+    B <: ContinuousInvestment,
+    C <: BasicDispatch,
+    D <: FeasibilityTechnologyFormulation,
+}
+    #devices = PSIP.get_technologies(T, p)
+    devices = [PSIP.get_technology(T, p, n) for n in names]
 
-    # TODO: Add objective function to storage constructor after costs are added to storage in portfolio
+    #convert technology model to string for container metadata
+    tech_model = IS.strip_module_name(B)
+
     # Capital Component of objective function
-    #objective_function!(container, devices, B())
-
-    # Operations Component of objective function
-    #objective_function!(container, devices, C())
+    objective_function!(container, devices, B(), tech_model)
 
     # Add objective function from container to JuMP model
-    #update_objective_function!(container)
+    update_objective_function!(container)
 
     # Capacity constraints
     add_constraints!(
@@ -87,6 +136,7 @@ function construct_technologies!(
         MaximumCumulativePowerCapacity(),
         CumulativePowerCapacity(),
         devices,
+        tech_model,
     )
 
     add_constraints!(
@@ -94,6 +144,7 @@ function construct_technologies!(
         MaximumCumulativeEnergyCapacity(),
         CumulativeEnergyCapacity(),
         devices,
+        tech_model,
     )
     return
 end
@@ -101,22 +152,28 @@ end
 function construct_technologies!(
     container::SingleOptimizationContainer,
     p::PSIP.Portfolio,
+    names::Vector{String},
     ::ModelConstructStage,
     model::OperationCostModel,
-    technology_model::TechnologyModel{T, B, C},
-    # network_model::NetworkModel{<:PM.AbstractActivePowerModel},
-) where {T <: PSIP.StorageTechnology, B <: ContinuousInvestment, C <: BasicDispatch}
-    devices = PSIP.get_technologies(T, p)
+    technology_model::TechnologyModel{T, B, C, D},
+    transport_model::TransportModel{<:AbstractTransportAggregation},
+) where {
+    T <: PSIP.StorageTechnology,
+    B <: ContinuousInvestment,
+    C <: BasicDispatch,
+    D <: FeasibilityTechnologyFormulation,
+}
+    #devices = PSIP.get_technologies(T, p)
+    devices = [PSIP.get_technology(T, p, n) for n in names]
 
-    # TODO: Add objective function to storage constructor after costs are added to storage in portfolio
-    # Capital Component of objective function
-    #objective_function!(container, devices, B())
+    #convert technology model to string for container metadata
+    tech_model = IS.strip_module_name(B)
 
     # Operations Component of objective function
-    #objective_function!(container, devices, C())
+    objective_function!(container, devices, C(), tech_model)
 
     # Add objective function from container to JuMP model
-    #update_objective_function!(container)
+    update_objective_function!(container)
 
     # Dispatch input power constraint
     add_constraints!(
@@ -124,6 +181,7 @@ function construct_technologies!(
         InputActivePowerVariableLimitsConstraint(),
         ActiveInPowerVariable(),
         devices,
+        tech_model,
     )
 
     # Dispatch output power constraint
@@ -132,13 +190,26 @@ function construct_technologies!(
         OutputActivePowerVariableLimitsConstraint(),
         ActiveOutPowerVariable(),
         devices,
+        tech_model,
     )
 
     # Energy storage constraint
-    add_constraints!(container, StateofChargeLimitsConstraint(), EnergyVariable(), devices)
+    add_constraints!(
+        container,
+        StateofChargeLimitsConstraint(),
+        EnergyVariable(),
+        devices,
+        tech_model,
+    )
 
     #State of charge constraint
-    add_constraints!(container, EnergyBalanceConstraint(), EnergyVariable(), devices)
+    add_constraints!(
+        container,
+        EnergyBalanceConstraint(),
+        EnergyVariable(),
+        devices,
+        tech_model,
+    )
 
     return
 end
@@ -146,23 +217,19 @@ end
 function construct_technologies!(
     container::SingleOptimizationContainer,
     p::PSIP.Portfolio,
+    names::Vector{String},
     ::ModelConstructStage,
     model::FeasibilityModel,
-    technology_model::TechnologyModel{T, B, C},
-    # network_model::NetworkModel{<:PM.AbstractActivePowerModel},
-) where {T <: PSIP.StorageTechnology, B <: ContinuousInvestment, C <: BasicDispatch}
-    devices = PSIP.get_technologies(T, p)
-
-    # TODO: Add objective function to storage constructor after costs are added to storage in portfolio
-    # Capital Component of objective function
-    #objective_function!(container, devices, B())
-
-    # Operations Component of objective function
-    #objective_function!(container, devices, C())
-
-    # Add objective function from container to JuMP model
-    #update_objective_function!(container)
+    technology_model::TechnologyModel{T, B, C, D},
+    transport_model::TransportModel{<:AbstractTransportAggregation},
+) where {
+    T <: PSIP.StorageTechnology,
+    B <: ContinuousInvestment,
+    C <: BasicDispatch,
+    D <: FeasibilityTechnologyFormulation,
+}
+    #devices = PSIP.get_technologies(T, p)
+    devices = [PSIP.get_technology(T, p, n) for n in names]
 
     return
 end
-

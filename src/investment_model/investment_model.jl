@@ -159,7 +159,7 @@ function write_results!(
     model::InvestmentModel,
     index::Union{DecisionModelIndexType, EmulationModelIndexType},
     update_timestamp::Dates.DateTime;
-    exports = nothing,
+    exports=nothing,
 )
     if exports !== nothing
         export_params = Dict{Symbol, Any}(
@@ -174,7 +174,6 @@ function write_results!(
     end
 
     write_model_dual_results!(store, model, index, update_timestamp, export_params)
-    write_model_parameter_results!(store, model, index, update_timestamp, export_params)
     write_model_variable_results!(store, model, index, update_timestamp, export_params)
     write_model_aux_variable_results!(store, model, index, update_timestamp, export_params)
     write_model_expression_results!(store, model, index, update_timestamp, export_params)
@@ -206,44 +205,7 @@ function write_model_dual_results!(
             resolution = export_params[:resolution]
             file_type = export_params[:file_type]
             df = to_dataframe(jump_value.(constraint), key)
-            time_col = range(index; length = horizon_count, step = resolution)
-            DataFrames.insertcols!(df, 1, :DateTime => time_col)
-            IS.Optimization.export_result(file_type, exports_path, key, index, df)
-        end
-    end
-    return
-end
-
-function write_model_parameter_results!(
-    store,
-    model::T,
-    index::Union{DecisionModelIndexType, EmulationModelIndexType},
-    update_timestamp::Dates.DateTime,
-    export_params::Union{Dict{Symbol, Any}, Nothing},
-) where {T <: InvestmentModel}
-    container = get_optimization_container(model)
-    model_name = get_name(model)
-    if export_params !== nothing
-        exports_path = joinpath(export_params[:exports_path], "parameters")
-        mkpath(exports_path)
-    end
-
-    horizon = get_horizon(get_settings(model))
-    resolution = get_resolution(get_settings(model))
-    horizon_count = horizon ÷ resolution
-
-    parameters = get_parameters(container)
-    for (key, container) in parameters
-        !should_write_resulting_value(key) && continue
-        data = calculate_parameter_values(container)
-        write_result!(store, model_name, key, index, update_timestamp, data)
-
-        if export_params !== nothing &&
-           should_export_parameter(export_params[:exports], index, model_name, key)
-            resolution = export_params[:resolution]
-            file_type = export_params[:file_type]
-            df = to_dataframe(data, key)
-            time_col = range(index; length = horizon_count, step = resolution)
+            time_col = range(index; length=horizon_count, step=resolution)
             DataFrames.insertcols!(df, 1, :DateTime => time_col)
             IS.Optimization.export_result(file_type, exports_path, key, index, df)
         end
@@ -282,7 +244,7 @@ function write_model_variable_results!(
             resolution = export_params[:resolution]
             file_type = export_params[:file_type]
             df = to_dataframe(data, key)
-            time_col = range(index; length = horizon_count, step = resolution)
+            time_col = range(index; length=horizon_count, step=resolution)
             DataFrames.insertcols!(df, 1, :DateTime => time_col)
             IS.Optimization.export_result(file_type, exports_path, key, index, df)
         end
@@ -315,7 +277,7 @@ function write_model_aux_variable_results!(
             resolution = export_params[:resolution]
             file_type = export_params[:file_type]
             df = to_dataframe(data, key)
-            time_col = range(index; length = horizon_count, step = resolution)
+            time_col = range(index; length=horizon_count, step=resolution)
             DataFrames.insertcols!(df, 1, :DateTime => time_col)
             IS.Optimization.export_result(file_type, exports_path, key, index, df)
         end
@@ -354,7 +316,7 @@ function write_model_expression_results!(
             resolution = export_params[:resolution]
             file_type = export_params[:file_type]
             df = to_dataframe(data, key)
-            time_col = range(index; length = horizon_count, step = resolution)
+            time_col = range(index; length=horizon_count, step=resolution)
             DataFrames.insertcols!(df, 1, :DateTime => time_col)
             IS.Optimization.export_result(file_type, exports_path, key, index, df)
         end
@@ -363,23 +325,15 @@ function write_model_expression_results!(
 end
 
 function init_model_store_params!(model::InvestmentModel)
-    num_executions = get_executions(model)
-    horizon = get_horizon(get_settings(model))
-    resolution = get_resolution(get_settings(model))
     @warn "Update interval once it is in Portfolios"
     #portfolio = get_system(model)
     #interval = PSIP.get_forecast_interval(portfolio)
-    interval = resolution
     @warn "update PSIP to get base power from attached system"
     base_power = 100.0 #PSIP.get_base_power(portfolio)
     port_uuid = IS.make_uuid()#IS.get_uuid(system)
 
     # will probably need to include time mapping object here as well
     store_params = ModelStoreParams(
-        num_executions, # remove num_executions
-        horizon,
-        iszero(interval) ? resolution : interval,
-        resolution,
         base_power,
         port_uuid,
         get_metadata(get_optimization_container(model)),
@@ -424,7 +378,7 @@ function build_pre_step!(model::InvestmentModel)
         @info "Initializing Optimization Container For an InvestmentModel"
         init_optimization_container!(
             get_optimization_container(model),
-            get_transport_model(get_template(model)),
+            get_template(model),
             get_portfolio(model),
         )
         @info "Initializing ModelStoreParams"
@@ -484,18 +438,18 @@ end
 
 function solve!(
     model::InvestmentModel{<:SolutionAlgorithm};
-    export_problem_results = false,
-    console_level = Logging.Error,
-    file_level = Logging.Info,
-    disable_timer_outputs = false,
-    export_optimization_problem = true,
+    export_problem_results=false,
+    console_level=Logging.Error,
+    file_level=Logging.Info,
+    disable_timer_outputs=false,
+    export_optimization_problem=true,
     kwargs...,
 )
     build_if_not_already_built!(
         model;
-        console_level = console_level,
-        file_level = file_level,
-        disable_timer_outputs = disable_timer_outputs,
+        console_level=console_level,
+        file_level=file_level,
+        disable_timer_outputs=disable_timer_outputs,
         kwargs...,
     )
     set_console_level!(model, console_level)
@@ -533,7 +487,7 @@ function solve!(
 
                 if export_optimization_problem
                     TimerOutputs.@timeit RUN_OPERATION_MODEL_TIMER "Serialize" begin
-                        serialize_problem(model; optimizer = optimizer)
+                        serialize_problem(model; optimizer=optimizer)
                         serialize_optimization_model(model)
                     end
                 end
@@ -556,8 +510,6 @@ function solve!(
 
     return get_run_status(model)
 end
-
-
 
 function solve_impl!(model::InvestmentModel)
     container = get_optimization_container(model)
@@ -658,7 +610,7 @@ function register_recorders!(model::InvestmentModel, file_mode)
     recorder_dir = get_recorder_dir(model)
     mkpath(recorder_dir)
     for name in IS.Optimization.get_recorders(get_internal(model))
-        IS.register_recorder!(name; mode = file_mode, directory = recorder_dir)
+        IS.register_recorder!(name; mode=file_mode, directory=recorder_dir)
     end
 end
 

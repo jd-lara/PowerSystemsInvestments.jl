@@ -13,12 +13,14 @@ export TechnologyModel
 
 ### Capital Model ###
 export DiscountedCashFlow
-export AggregateOperatingCost
-export RepresentativePeriods
 
 ### Operation Model ###
 export AggregateOperatingCost
 export ClusteredRepresentativeDays
+export OperationalRepresentativeDays
+
+### Feasibility Model ###
+export RepresentativePeriods
 
 ### Investment Formulations ###
 export ContinuousInvestment
@@ -217,9 +219,7 @@ import InfrastructureSystems.Optimization:
     to_matrix,
     get_store_container_type
 import InfrastructureSystems.Optimization:
-    OptimizationProblemResults,
-    OptimizationProblemResultsExport,
-    OptimizerStats
+    OptimizationProblemResults, OptimizationProblemResultsExport, OptimizerStats
 import InfrastructureSystems.Optimization:
     read_optimizer_stats,
     get_optimizer_stats,
@@ -252,6 +252,7 @@ include("base/settings.jl")
 include("base/solution_algorithms.jl")
 include("base/technology_model.jl")
 include("base/investment_model_template.jl")
+include("base/time_mapping.jl")
 
 include("base/objective_function.jl")
 include("base/single_optimization_container.jl")

@@ -38,12 +38,12 @@ function psin_constraint_test(
     return
 end
 
-function psin_checksolve_test(model::InvestmentModel, status, expected_result, tol = 0.0)
+function psin_checksolve_test(model::InvestmentModel, status, expected_result, tol=0.0)
     res = solve!(model)
     model = PSIN.get_jump_model(model)
     @test termination_status(model) in status
     obj_value = JuMP.objective_value(model)
-    @test isapprox(obj_value, expected_result, atol = tol)
+    @test isapprox(obj_value, expected_result, atol=tol)
 end
 
 function check_variable_unbounded(

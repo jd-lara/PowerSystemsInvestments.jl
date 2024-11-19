@@ -53,7 +53,6 @@ function construct_technologies!(
     model::FeasibilityModel,
     technology_model::TechnologyModel{T,B,C,D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
-    # network_model::NetworkModel{<:PM.AbstractActivePowerModel},
 ) where {
     T<:PSIP.DemandRequirement,
     B<:StaticLoadInvestment,

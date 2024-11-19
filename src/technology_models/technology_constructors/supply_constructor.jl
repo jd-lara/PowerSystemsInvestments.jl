@@ -91,7 +91,14 @@ function construct_technologies!(
     add_variable!(container, ActivePowerVariable(), devices, C(), tech_model)
 
     # EnergyBalance
-    add_to_expression!(container, EnergyBalance(), devices, C(), tech_model, transport_model)
+    add_to_expression!(
+        container,
+        EnergyBalance(),
+        devices,
+        C(),
+        tech_model,
+        transport_model,
+    )
 
     return
 end
@@ -152,7 +159,13 @@ function construct_technologies!(
     update_objective_function!(container)
 
     # Capacity constraint
-    add_constraints!(container, MaximumCumulativeCapacity(), CumulativeCapacity(), devices, tech_model)
+    add_constraints!(
+        container,
+        MaximumCumulativeCapacity(),
+        CumulativeCapacity(),
+        devices,
+        tech_model,
+    )
 
     return
 end
@@ -189,7 +202,7 @@ function construct_technologies!(
         ActivePowerLimitsConstraint(),
         ActivePowerVariable(),
         devices,
-        tech_model
+        tech_model,
     )
 
     return

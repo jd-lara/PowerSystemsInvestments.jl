@@ -77,7 +77,7 @@ function _add_time_series_parameters!(
     if !(ts_type <: Union{PSY.AbstractDeterministic, PSY.StaticTimeSeries})
         error("add_parameters! for TimeSeriesParameter is not compatible with $ts_type")
     end
-    time_steps = get_time_steps(container)
+    time_steps = get_time_steps(time_mapping)
     ts_name = get_time_series_names(model)[T]
     time_series_mult_id = _create_time_series_multiplier_index(model, T)
 
@@ -157,7 +157,7 @@ function _add_parameters!(
 } where {D <: Technology}
     @debug "adding" T D U _group = LOG_GROUP_OPTIMIZATION_CONTAINER
     names = [PSY.get_name(device) for device in devices]
-    time_steps = get_time_steps(container)
+    time_steps = get_time_steps(time_mapping)
     parameter_container = add_param_container!(container, T(), D, key, names, time_steps)
     jump_model = get_jump_model(container)
     for d in devices

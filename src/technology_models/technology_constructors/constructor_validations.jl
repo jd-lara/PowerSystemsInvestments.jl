@@ -7,10 +7,7 @@ function validate_available_technologies(
     B <: OperationsTechnologyFormulation,
     C <: FeasibilityTechnologyFormulation,
 }
-    technologies =
-        get_available_technologies(model,
-            port,
-        )
+    technologies = get_available_technologies(model, port)
     if isempty(technologies)
         return false
     end

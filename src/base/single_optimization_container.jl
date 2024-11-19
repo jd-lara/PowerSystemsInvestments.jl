@@ -17,8 +17,7 @@ end
 Base.@kwdef mutable struct SingleOptimizationContainer <:
                            ISOPT.AbstractOptimizationContainer
     JuMPmodel::JuMP.Model
-    time_steps::UnitRange{Int}
-    time_steps_investments::UnitRange{Int}
+    time_mapping::TimeMapping
     settings::Settings
     settings_copy::Settings
     variables::Dict{ISOPT.VariableKey,AbstractArray}
@@ -49,8 +48,7 @@ function SingleOptimizationContainer(
 
     return SingleOptimizationContainer(
         jump_model === nothing ? JuMP.Model() : jump_model,
-        1:1,
-        1:1,
+        TimeMapping(nothing),
         settings,
         copy_for_serialization(settings),
         Dict{VariableKey,AbstractArray}(),
@@ -86,9 +84,7 @@ get_optimizer_stats(container::SingleOptimizationContainer) = container.optimize
 get_parameters(container::SingleOptimizationContainer) = container.parameters
 get_resolution(container::SingleOptimizationContainer) = get_resolution(container.settings)
 get_settings(container::SingleOptimizationContainer) = container.settings
-get_time_steps(container::SingleOptimizationContainer) = container.time_steps
-get_time_steps_investments(container::SingleOptimizationContainer) =
-    container.time_steps_investments
+get_time_mapping(container::SingleOptimizationContainer) = container.time_mapping
 get_variables(container::SingleOptimizationContainer) = container.variables
 
 set_initial_conditions_data!(container::SingleOptimizationContainer, data) =
@@ -97,12 +93,8 @@ get_objective_expression(container::SingleOptimizationContainer) =
     container.objective_function
 is_synchronized(container::SingleOptimizationContainer) =
     container.objective_function.synchronized
-set_time_steps!(container::SingleOptimizationContainer, time_steps::UnitRange{Int64}) =
-    container.time_steps = time_steps
-set_time_steps_investments!(
-    container::SingleOptimizationContainer,
-    time_steps::UnitRange{Int64},
-) = container.time_steps_investments = time_steps
+set_time_mapping!(container::SingleOptimizationContainer, time_mapping::TimeMapping) =
+    container.time_mapping = time_mapping
 
 get_aux_variables(container::SingleOptimizationContainer) = container.aux_variables
 get_base_power(container::SingleOptimizationContainer) = container.base_power
@@ -152,10 +144,6 @@ function _finalize_jump_model!(container::SingleOptimizationContainer, settings:
     end
 
     JuMPmodel = PSIN.get_jump_model(container)
-    @warn "possibly remove"
-    warm_start_enabled = get_warm_start(settings)
-    solver_supports_warm_start = _validate_warm_start_support(JuMPmodel, warm_start_enabled)
-    set_warm_start!(settings, solver_supports_warm_start)
 
     JuMP.set_string_names_on_creation(JuMPmodel, get_store_variable_names(settings))
 
@@ -174,32 +162,27 @@ end
 
 function init_optimization_container!(
     container::SingleOptimizationContainer,
-    transport_model::TransportModel{T},
+    template::InvestmentModelTemplate,
     port::PSIP.Portfolio,
 ) where {T<:AbstractTransportAggregation}
     @warn "add system units back in"
     #PSY.set_units_base_system!(sys, "SYSTEM_BASE")
     # The order of operations matter
+    transport_model = get_transport_model(template)
     settings = get_settings(container)
 
-    #=
-    if get_initial_time(settings) == UNSET_INI_TIME
-        if get_default_time_series_type(container) <: PSY.AbstractDeterministic
-            set_initial_time!(settings, PSY.get_forecast_initial_timestamp(sys))
-        elseif get_default_time_series_type(container) <: PSY.SingleTimeSeries
-            ini_time, _ = PSY.check_time_series_consistency(sys, PSY.SingleTimeSeries)
-            set_initial_time!(settings, ini_time)
-        end
-    end
-    =#
+    # Update Time Mapping
+    capital_model = get_capital_model(template)
+    operation_model = get_operation_model(template)
+    feasibility_model = get_feasibility_model(template)
 
-    if get_resolution(settings) == UNSET_RESOLUTION
-        error("Resolution not set in the model. Can't continue with the build.")
-    end
+    time_map = TimeMapping(
+        capital_model.investment_years,
+        operation_model.representative_series,
+        feasibility_model.sample_periods,
+    )
 
-    horizon_count = (get_horizon(settings) ÷ get_resolution(settings))
-    @assert horizon_count > 0
-    container.time_steps = 1:horizon_count
+    set_time_mapping!(container, time_map)
 
     #=
     if T <: SingleRegionBalanceModel #|| T <: AreaBalancePowerModel
@@ -864,10 +847,8 @@ function _make_system_expressions!(
     container::SingleOptimizationContainer,
     ::Type{SingleRegionBalanceModel},
 )
-    @error "Hard Code TimeSteps"
-    time_steps = 1:OPTHORIZON
-    container.time_steps = 1:OPTHORIZON
-    container.time_steps_investments = 1:1
+    time_mapping = get_time_mapping(container)
+    time_steps = get_time_steps(time_mapping)
     container.expressions = Dict(
         ExpressionKey(EnergyBalance, PSIP.Portfolio) =>
             _make_container_array(["SingleRegion"], time_steps),
@@ -880,13 +861,11 @@ end
 function _make_system_expressions!(
     container::SingleOptimizationContainer,
     ::Type{MultiRegionBalanceModel},
-    port::PSIP.Portfolio
+    port::PSIP.Portfolio,
 )
     regions = PSIP.get_regions(PSIP.Zone, port)
-    @error "Hard Code TimeSteps"
-    time_steps = 1:OPTHORIZON
-    container.time_steps = 1:OPTHORIZON
-    container.time_steps_investments = 1:1
+    time_mapping = get_time_mapping(container)
+    time_steps = get_time_steps(time_mapping)
     container.expressions = Dict(
         ExpressionKey(EnergyBalance, PSIP.Portfolio) =>
             _make_container_array(regions, time_steps),
@@ -916,7 +895,10 @@ end
 
 ###################################Initial Conditions Containers############################
 
-function calculate_aux_variables!(container::SingleOptimizationContainer, port::PSIP.Portfolio)
+function calculate_aux_variables!(
+    container::SingleOptimizationContainer,
+    port::PSIP.Portfolio,
+)
     aux_vars = get_aux_variables(container)
     for key in keys(aux_vars)
         calculate_aux_variable_value!(container, key, port)
@@ -973,7 +955,11 @@ function build_model!(
             LOG_GROUP_OPTIMIZATION_CONTAINER
         TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(get_technology_type(tech_model))" begin
             if validate_available_technologies(tech_model, port)
-                for mod in [template.capital_model, template.operation_model, template.feasibility_model]
+                for mod in [
+                    template.capital_model,
+                    template.operation_model,
+                    template.feasibility_model,
+                ]
                     construct_technologies!(
                         container,
                         port,
@@ -1015,7 +1001,11 @@ function build_model!(
             LOG_GROUP_OPTIMIZATION_CONTAINER
         TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(get_technology_type(branch_model))" begin
             if validate_available_technologies(branch_model, port)
-                for mod in [template.capital_model, template.operation_model, template.feasibility_model]
+                for mod in [
+                    template.capital_model,
+                    template.operation_model,
+                    template.feasibility_model,
+                ]
                     construct_technologies!(
                         container,
                         port,
@@ -1048,7 +1038,11 @@ function build_model!(
             LOG_GROUP_OPTIMIZATION_CONTAINER
         TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(get_technology_type(tech_model))" begin
             if validate_available_technologies(tech_model, port)
-                for mod in [template.capital_model, template.operation_model, template.feasibility_model]
+                for mod in [
+                    template.capital_model,
+                    template.operation_model,
+                    template.feasibility_model,
+                ]
                     construct_technologies!(
                         container,
                         port,
@@ -1065,14 +1059,17 @@ function build_model!(
         end
     end
 
-
     for (i, name_list) in enumerate(branch_names)
         branch_model = branch_templates[i]
         @debug "Building Arguments for $(get_technology_type(branch_model)) with $(get_investment_formulation(branch_model)) formulation" _group =
             LOG_GROUP_OPTIMIZATION_CONTAINER
         TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(get_technology_type(branch_model))" begin
             if validate_available_technologies(branch_model, port)
-                for mod in [template.capital_model, template.operation_model, template.feasibility_model]
+                for mod in [
+                    template.capital_model,
+                    template.operation_model,
+                    template.feasibility_model,
+                ]
                     construct_technologies!(
                         container,
                         port,
@@ -1114,10 +1111,7 @@ end
 """
 Default solve method for OptimizationContainer
 """
-function solve_model!(
-    container::SingleOptimizationContainer,
-    port::PSIP.Portfolio
-)
+function solve_model!(container::SingleOptimizationContainer, port::PSIP.Portfolio)
     optimizer_stats = get_optimizer_stats(container)
 
     jump_model = get_jump_model(container)
@@ -1174,7 +1168,10 @@ end
 """
 Exports the OpModel JuMP object in MathOptFormat
 """
-function serialize_optimization_model(container::SingleOptimizationContainer, save_path::String)
+function serialize_optimization_model(
+    container::SingleOptimizationContainer,
+    save_path::String,
+)
     serialize_jump_optimization_model(get_jump_model(container), save_path)
     return
 end
@@ -1200,8 +1197,7 @@ function check_duplicate_names(
     names::Vector{String},
     container::SingleOptimizationContainer,
     variable_type::T,
-    tech_type::Type{D},
-    meta=IS.Optimization.CONTAINER_KEY_EMPTY_META,
+    tech_type::Type{D}
 ) where {
     T<:ISOPT.VariableType,
     D<:PSIP.Technology

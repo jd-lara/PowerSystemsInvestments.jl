@@ -291,25 +291,26 @@ function add_to_expression!(
     V<:SingleRegionBalanceModel
 } where {D<:PSIP.SupplyTechnology}
     #@assert !isempty(devices)
-    mapping_ops = OPMAPPING
-    mapping_inv = INVMAPPING
-    time_steps = get_time_steps(container)
-    time_steps_inv = get_time_steps_investments(container)
+    time_mapping = get_time_mapping(container)
+    time_steps = get_time_steps(time_mapping)
+
     #binary = false
     #var = get_variable(container, ActivePowerVariable(), D)
     installed_cap = get_expression(container, CumulativeCapacity(), D, "ContinuousInvestment")
     variable = get_variable(container, ActivePowerVariable(), D, tech_model)
     expression = get_expression(container, T(), PSIP.Portfolio)
+
+    operational_indexes = get_operational_indexes(time_mapping)
+    consecutive_slices = get_consecutive_slices(time_mapping)
+    inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
+    time_stamps = get_time_stamps(time_mapping)
     # expression = add_expression_container!(container, expression_type, D, time_steps)
     for d in devices
         name = PSIP.get_name(d)
-
-        for step in time_steps_inv
-            year = first(keys(mapping_inv))
-            time_steps_ix = mapping_ops[(year, step)]
-            time_step_inv = mapping_inv[year]
-
-            for (ix, t) in enumerate(time_steps_ix)
+        for op_ix in operational_indexes
+            time_slices = consecutive_slices[op_ix]
+            time_step_inv = inverse_invest_mapping[op_ix]
+            for t in time_slices
                 _add_to_jump_expression!(
                     expression["SingleRegion", t],
                     installed_cap[name, time_step_inv],
@@ -344,26 +345,29 @@ function add_to_expression!(
     V<:MultiRegionBalanceModel
 } where {D<:PSIP.SupplyTechnology}
     #@assert !isempty(devices)
-    mapping_ops = OPMAPPING
-    mapping_inv = INVMAPPING
-    time_steps = get_time_steps(container)
-    time_steps_inv = get_time_steps_investments(container)
+    time_mapping = get_time_mapping(container)
+    time_steps = get_time_steps(time_mapping)
+
     #binary = false
     #var = get_variable(container, ActivePowerVariable(), D)
     installed_cap = get_expression(container, CumulativeCapacity(), D, "ContinuousInvestment")
     variable = get_variable(container, ActivePowerVariable(), D, tech_model)
     expression = get_expression(container, T(), PSIP.Portfolio)
+
+    operational_indexes = get_operational_indexes(time_mapping)
+    consecutive_slices = get_consecutive_slices(time_mapping)
+    inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
+    time_stamps = get_time_stamps(time_mapping)
     # expression = add_expression_container!(container, expression_type, D, time_steps)
     for d in devices
         name = PSIP.get_name(d)
         region = PSIP.get_region(d)
-        for step in time_steps_inv
-            year = first(keys(mapping_inv))
-            time_steps_ix = mapping_ops[(year, step)]
-            time_step_inv = mapping_inv[year]
-            for (ix, t) in enumerate(time_steps_ix)
+        for op_ix in operational_indexes
+            time_slices = consecutive_slices[op_ix]
+            time_step_inv = inverse_invest_mapping[op_ix]
+            for t in time_slices
                 _add_to_jump_expression!(
-                    expression[region, t],
+                    expression["SingleRegion", t],
                     installed_cap[name, time_step_inv],
                     1.0, #get_variable_multiplier(U(), V, W()),
                 )

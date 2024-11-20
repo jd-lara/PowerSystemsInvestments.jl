@@ -1197,7 +1197,8 @@ function check_duplicate_names(
     names::Vector{String},
     container::SingleOptimizationContainer,
     variable_type::T,
-    tech_type::Type{D}
+    tech_type::Type{D},
+    meta=IS.Optimization.CONTAINER_KEY_EMPTY_META,
 ) where {
     T<:ISOPT.VariableType,
     D<:PSIP.Technology

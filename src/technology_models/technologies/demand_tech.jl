@@ -1,15 +1,5 @@
-function get_default_time_series_names(
-    ::Type{U},
-    ::Type{V},
-    ::Type{W},
-    ::Type{X},
-) where {
-    U<:PSIP.DemandRequirement,
-    V<:InvestmentTechnologyFormulation,
-    W<:OperationsTechnologyFormulation,
-    X<:FeasibilityTechnologyFormulation,
-}
-    return Dict{Type{<:TimeSeriesParameter},String}()
+function get_default_time_series_names(::Type{U}) where {U<:PSIP.DemandRequirement}
+    return "ops_peak_load"
 end
 
 function get_default_attributes(

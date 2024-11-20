@@ -13,18 +13,8 @@ get_variable_multiplier(::ActivePowerVariable, ::Type{PSIP.SupplyTechnology{PSY.
 
 #! format: on
 
-function get_default_time_series_names(
-    ::Type{U},
-    ::Type{V},
-    ::Type{W},
-    ::Type{X},
-) where {
-    U<:PSIP.SupplyTechnology,
-    V<:InvestmentTechnologyFormulation,
-    W<:OperationsTechnologyFormulation,
-    X<:FeasibilityTechnologyFormulation,
-}
-    return Dict{Type{<:TimeSeriesParameter},String}()
+function get_default_time_series_names(::Type{U}) where {U<:PSIP.SupplyTechnology}
+    return "ops_variable_cap_factor"
 end
 
 
@@ -367,7 +357,7 @@ function add_to_expression!(
             time_step_inv = inverse_invest_mapping[op_ix]
             for t in time_slices
                 _add_to_jump_expression!(
-                    expression["SingleRegion", t],
+                    expression[region, t],
                     installed_cap[name, time_step_inv],
                     1.0, #get_variable_multiplier(U(), V, W()),
                 )

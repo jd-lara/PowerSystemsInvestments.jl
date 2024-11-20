@@ -10,8 +10,8 @@ get_variable_multiplier(::ActivePowerVariable, ::Type{GenericTransportTechnology
 
 #! format: on
 
-function get_default_time_series_names(::Type{U}) where {U<:GenericTransportTechnology}
-    return ""
+function get_default_time_series_names(::Type{U}) where {U<:PSIP.SupplyTechnology}
+    return "ops_variable_cap_factor"
 end
 
 function get_default_attributes(

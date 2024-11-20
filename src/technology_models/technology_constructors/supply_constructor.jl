@@ -124,7 +124,6 @@ function construct_technologies!(
 
     #convert technology model to string for container metadata
     tech_model = IS.strip_module_name(D)
-    println(tech_model)
     add_variable!(container, ActivePowerVariable(), devices, C(), tech_model)
 
     # SupplyTotal

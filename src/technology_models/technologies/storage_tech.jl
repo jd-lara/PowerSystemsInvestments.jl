@@ -30,18 +30,8 @@ get_variable_multiplier(::ActiveOutPowerVariable, ::Type{PSIP.StorageTechnology}
 
 #! format: on
 
-function get_default_time_series_names(
-    ::Type{U},
-    ::Type{V},
-    ::Type{W},
-    ::Type{X},
-) where {
-    U<:PSIP.StorageTechnology,
-    V<:InvestmentTechnologyFormulation,
-    W<:OperationsTechnologyFormulation,
-    X<:FeasibilityTechnologyFormulation,
-}
-    return Dict{Type{<:TimeSeriesParameter},String}()
+function get_default_time_series_names(::Type{U}) where {U<:PSIP.SupplyTechnology}
+    return "ops_variable_cap_factor"
 end
 
 function get_default_attributes(
@@ -657,15 +647,18 @@ function add_constraints!(
 
     for d in devices, t in time_steps
         name = PSIP.get_name(d)
-        con_ub[name, t] = JuMP.@constraint(
-            get_jump_model(container),
-            storage_state[name, t] == charge[name, t] - discharge[name, t]
-        )
-        con_ub[name, t] = JuMP.@constraint(
-            get_jump_model(container),
-            storage_state[name, t] ==
-            storage_state[name, t-1] + charge[name, t] - discharge[name, t]
-        )
+        if t == 1
+            con_ub[name, t] = JuMP.@constraint(
+                get_jump_model(container),
+                storage_state[name, t] == charge[name, t] - discharge[name, t]
+            )
+        else
+            con_ub[name, t] = JuMP.@constraint(
+                get_jump_model(container),
+                storage_state[name, t] ==
+                storage_state[name, t-1] + charge[name, t] - discharge[name, t]
+            )
+        end
 
     end
 end

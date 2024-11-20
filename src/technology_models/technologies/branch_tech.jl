@@ -159,7 +159,7 @@ function add_constraints!(
             for t in time_slices
                 con_ub[name, t] = JuMP.@constraint(
                     get_jump_model(container),
-                    active_power[name, t] <= installed_cap[name, op_ix]
+                    active_power[name, t] <= installed_cap[name, time_step_inv]
                 )
             end
         end

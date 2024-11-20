@@ -246,12 +246,13 @@ function _add_linearcurve_cost!(
     discount_factor = 1.0 / (1.0 + discount_rate)
     dollars_to_base_year = (1.0 + inflation_rate)^(-(tech_base_year - base_year))
     years = Dates.value.(Dates.Year.(get_time_stamps(time_mapping)))
-    
+
     for op_ix in get_operational_indexes(time_mapping)
         weight = operational_weights[op_ix]
         for t in consecutive_slices[op_ix]
             future_to_present_value = discount_factor^(years[t] - base_year)
-            npv_proportional_term = proportional_term * dollars_to_base_year * future_to_present_value
+            npv_proportional_term =
+                proportional_term * dollars_to_base_year * future_to_present_value
             _add_linearcurve_variable_term_to_model!(
                 container,
                 T(),

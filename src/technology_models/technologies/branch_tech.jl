@@ -10,7 +10,7 @@ get_variable_multiplier(::ActivePowerVariable, ::Type{GenericTransportTechnology
 
 #! format: on
 
-function get_default_time_series_names(::Type{U}) where {U<:PSIP.SupplyTechnology}
+function get_default_time_series_names(::Type{U}) where {U <: PSIP.SupplyTechnology}
     return "ops_variable_cap_factor"
 end
 
@@ -20,12 +20,12 @@ function get_default_attributes(
     ::Type{W},
     ::Type{X},
 ) where {
-    U<:GenericTransportTechnology,
-    V<:InvestmentTechnologyFormulation,
-    W<:OperationsTechnologyFormulation,
-    X<:FeasibilityTechnologyFormulation,
+    U <: GenericTransportTechnology,
+    V <: InvestmentTechnologyFormulation,
+    W <: OperationsTechnologyFormulation,
+    X <: FeasibilityTechnologyFormulation,
 }
-    return Dict{String,Any}()
+    return Dict{String, Any}()
 end
 
 ################### Variables ####################
@@ -39,9 +39,9 @@ function add_expression!(
     formulation::AbstractTechnologyFormulation,
     tech_model::String,
 ) where {
-    T<:CumulativeCapacity,
-    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
-} where {D<:GenericTransportTechnology}
+    T <: CumulativeCapacity,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+} where {D <: GenericTransportTechnology}
     #@assert !isempty(devices)
     time_mapping = get_time_mapping(container)
     time_steps = get_investment_time_steps(time_mapping)
@@ -85,10 +85,10 @@ function add_to_expression!(
     tech_model::String,
     transport_model::TransportModel{V},
 ) where {
-    T<:EnergyBalance,
-    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
-    V<:MultiRegionBalanceModel,
-} where {D<:GenericTransportTechnology}
+    T <: EnergyBalance,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+    V <: MultiRegionBalanceModel,
+} where {D <: GenericTransportTechnology}
     #@assert !isempty(devices)
     time_mapping = get_time_mapping(container)
     time_steps = get_time_steps(time_mapping)
@@ -127,10 +127,10 @@ function add_constraints!(
     devices::U,
     tech_model::String,
 ) where {
-    T<:ActivePowerLimitsConstraint,
-    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
-    V<:ActivePowerVariable,
-} where {D<:GenericTransportTechnology}
+    T <: ActivePowerLimitsConstraint,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+    V <: ActivePowerVariable,
+} where {D <: GenericTransportTechnology}
     time_mapping = get_time_mapping(container)
     time_steps = get_time_steps(time_mapping)
     # Hard Code Mapping #
@@ -176,11 +176,11 @@ function add_constraints!(
     tech_model::String,
     #::NetworkModel{X},
 ) where {
-    T<:MaximumCumulativeCapacity,
-    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
-    V<:CumulativeCapacity,
+    T <: MaximumCumulativeCapacity,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+    V <: CumulativeCapacity,
     #X <: PM.AbstractPowerModel,
-} where {D<:GenericTransportTechnology}
+} where {D <: GenericTransportTechnology}
     time_mapping = get_time_mapping(container)
     time_steps = get_investment_time_steps(time_mapping)
 
@@ -229,11 +229,11 @@ end
 
 function objective_function!(
     container::SingleOptimizationContainer,
-    devices::Union{Vector{T},IS.FlattenIteratorWrapper{T}},
+    devices::Union{Vector{T}, IS.FlattenIteratorWrapper{T}},
     #DeviceModel{T, U},
     formulation::ContinuousInvestment, #Type{<:PM.AbstractPowerModel},
     tech_model::String,
-) where {T<:GenericTransportTechnology}#, U <: BuildCapacity}
+) where {T <: GenericTransportTechnology}#, U <: BuildCapacity}
     add_capital_cost!(container, BuildCapacity(), devices, formulation, tech_model) #U()
     #add_fixed_om_cost!(container, CumulativeCapacity(), devices, formulation, tech_model)
     return

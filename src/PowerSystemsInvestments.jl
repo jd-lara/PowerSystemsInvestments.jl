@@ -146,7 +146,6 @@ export CumulativePowerCapacity
 export CumulativeEnergyCapacity
 export FeasibilitySurplus
 
-
 #remove later, just for testing
 export objective_function!
 export add_expression!

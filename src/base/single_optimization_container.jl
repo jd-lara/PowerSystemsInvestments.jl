@@ -28,6 +28,10 @@ Base.@kwdef mutable struct SingleOptimizationContainer <:
     expressions::Dict{ISOPT.ExpressionKey,AbstractArray}
     parameters::Dict{ISOPT.ParameterKey,ParameterContainer}
     primal_values_cache::PrimalValuesCache
+    operational_weights::Union{Nothing, Vector{Float64}}
+    base_year::Int
+    discount_rate::Float64
+    inflation_rate::Float64
     infeasibility_conflict::Dict{Symbol,Array}
     optimizer_stats::ISOPT.OptimizerStats
     metadata::ISOPT.OptimizationContainerMetadata
@@ -59,6 +63,10 @@ function SingleOptimizationContainer(
         Dict{ExpressionKey,AbstractArray}(),
         Dict{ParameterKey,ParameterContainer}(),
         PrimalValuesCache(),
+        nothing,
+        2020,
+        0.0,
+        0.0,
         Dict{Symbol,Array}(),
         ISOPT.OptimizerStats(),
         ISOPT.OptimizationContainerMetadata(),
@@ -85,6 +93,10 @@ get_parameters(container::SingleOptimizationContainer) = container.parameters
 get_resolution(container::SingleOptimizationContainer) = get_resolution(container.settings)
 get_settings(container::SingleOptimizationContainer) = container.settings
 get_time_mapping(container::SingleOptimizationContainer) = container.time_mapping
+get_operational_weights(container::SingleOptimizationContainer) = container.operational_weights
+get_base_year(container::SingleOptimizationContainer) = container.base_year
+get_discount_rate(container::SingleOptimizationContainer) = container.discount_rate
+get_inflation_rate(container::SingleOptimizationContainer) = container.inflation_rate
 get_variables(container::SingleOptimizationContainer) = container.variables
 
 set_initial_conditions_data!(container::SingleOptimizationContainer, data) =
@@ -95,6 +107,13 @@ is_synchronized(container::SingleOptimizationContainer) =
     container.objective_function.synchronized
 set_time_mapping!(container::SingleOptimizationContainer, time_mapping::TimeMapping) =
     container.time_mapping = time_mapping
+set_operational_weights!(container::SingleOptimizationContainer, operational_weights::Union{Nothing, Vector{Float64}}) =
+container.operational_weights = operational_weights
+set_base_year!(container::SingleOptimizationContainer, base_year::Int) =
+container.base_year = base_year
+set_discount_rate!(container::SingleOptimizationContainer, discount_rate::Float64) = container.discount_rate = discount_rate
+set_inflation_rate!(container::SingleOptimizationContainer, inflation_rate::Float64) = container.inflation_rate = inflation_rate
+
 
 get_aux_variables(container::SingleOptimizationContainer) = container.aux_variables
 get_base_power(container::SingleOptimizationContainer) = container.base_power
@@ -163,8 +182,8 @@ end
 function init_optimization_container!(
     container::SingleOptimizationContainer,
     template::InvestmentModelTemplate,
-    port::PSIP.Portfolio,
-) where {T<:AbstractTransportAggregation}
+    portfolio::PSIP.Portfolio,
+)
     @warn "add system units back in"
     #PSY.set_units_base_system!(sys, "SYSTEM_BASE")
     # The order of operations matter
@@ -183,6 +202,11 @@ function init_optimization_container!(
     )
 
     set_time_mapping!(container, time_map)
+    # TODO: Use Portfolio
+    set_base_year!(container, portfolio.base_year) 
+    set_operational_weights!(container, operation_model.series_weights)
+    set_discount_rate!(container, portfolio.discount_rate)
+    set_inflation_rate!(container, portfolio.inflation_rate)
 
     #=
     if T <: SingleRegionBalanceModel #|| T <: AreaBalancePowerModel

@@ -303,7 +303,7 @@ function add_to_expression!(
             for t in time_slices
                 _add_to_jump_expression!(
                     expression["SingleRegion", t],
-                    installed_cap[name, time_step_inv],
+                    installed_cap[name, op_ix],
                     1.0, #get_variable_multiplier(U(), V, W()),
                 )
             end
@@ -358,7 +358,7 @@ function add_to_expression!(
             for t in time_slices
                 _add_to_jump_expression!(
                     expression[region, t],
-                    installed_cap[name, time_step_inv],
+                    installed_cap[name, op_ix],
                     1.0, #get_variable_multiplier(U(), V, W()),
                 )
             end
@@ -425,7 +425,7 @@ function add_constraints!(
                 con_ub[name, t] = JuMP.@constraint(
                     get_jump_model(container),
                     active_power[name, t] <=
-                    ts_data[ix] * installed_cap[name, time_step_inv]
+                    ts_data[ix] * installed_cap[name, op_ix]
                 )
             end
         end
@@ -471,10 +471,11 @@ function add_constraints!(
         for op_ix in operational_indexes
             time_slices = consecutive_slices[op_ix]
             time_step_inv = inverse_invest_mapping[op_ix]
+
             for t in time_slices
                 con_ub[name, t] = JuMP.@constraint(
                     get_jump_model(container),
-                    active_power[name, t] <= installed_cap[name, time_step_inv]
+                    active_power[name, t] <= installed_cap[name, op_ix]
                 )
             end
         end

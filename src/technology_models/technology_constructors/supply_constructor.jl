@@ -263,11 +263,10 @@ function construct_technologies!(
     tech_model = IS.strip_module_name(B)
 
     # BuildCapacity variable
-    # This should break if a name is passed here a second time
-
     add_variable!(container, BuildCapacity(), devices, B(), tech_model)
 
     # CumulativeCapacity
-    #add_expression!(container, CumulativeCapacity(), devices, B(), technology_model.group_name)
+    add_expression!(container, CumulativeCapacity(), devices, B(), tech_model)
+
     return
 end

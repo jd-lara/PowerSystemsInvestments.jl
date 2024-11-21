@@ -43,7 +43,7 @@ function add_variable!(
     T <: InvestmentVariableType,
     U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
     V <: IntegerInvestment,
-} where {D <: PSIP.Technology}
+} where {D <: PSIP.SupplyTechnology}
     #@assert !isempty(devices)
     time_mapping = get_time_mapping(container)
     time_steps = get_investment_time_steps(time_mapping)

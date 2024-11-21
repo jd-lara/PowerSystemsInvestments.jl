@@ -35,6 +35,38 @@ function construct_technologies!(
     p::PSIP.Portfolio,
     names::Vector{String},
     ::ArgumentConstructStage,
+    ::CapitalCostModel,
+    technology_model::TechnologyModel{T, B, C, D},
+    transport_model::TransportModel{<:AbstractTransportAggregation},
+) where {
+    T <: PSIP.StorageTechnology,
+    B <: IntegerInvestment,
+    C <: BasicDispatch,
+    D <: FeasibilityTechnologyFormulation,
+}
+
+    #TODO: Port get_available_component functions from PSY
+    #devices = PSIP.get_technologies(T, p)
+    devices = [PSIP.get_technology(T, p, n) for n in names]
+
+    #convert technology model to string for container metadata
+    tech_model = IS.strip_module_name(B)
+
+    # BuildCapacity variables
+    add_variable!(container, BuildEnergyCapacity(), devices, B(), tech_model)
+    add_variable!(container, BuildPowerCapacity(), devices, B(), tech_model)
+
+    # CumulativeCapacity expressions
+    add_expression!(container, CumulativePowerCapacity(), devices, B(), tech_model)
+    add_expression!(container, CumulativeEnergyCapacity(), devices, B(), tech_model)
+    return
+end
+
+function construct_technologies!(
+    container::SingleOptimizationContainer,
+    p::PSIP.Portfolio,
+    names::Vector{String},
+    ::ArgumentConstructStage,
     model::OperationCostModel,
     technology_model::TechnologyModel{T, B, C, D},
     transport_model::TransportModel{<:AbstractTransportAggregation},

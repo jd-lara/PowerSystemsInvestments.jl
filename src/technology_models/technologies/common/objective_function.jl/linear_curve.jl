@@ -199,21 +199,20 @@ function _add_linearcurve_cost!(
     tech_base_year = PSIP.get_base_year(technology)
     capital_recovery_period = PSIP.get_capital_recovery_period(technology)
 
-    capital_recovery_factor = interest_rate / (1 - (1+interest_rate))^(-(capital_recovery_period))
+    capital_recovery_factor = interest_rate / (1 - (1+interest_rate)^(-(capital_recovery_period)))
     lump_amortized_payments = (1 - (1 + discount_rate) ^ (-(capital_recovery_period))) / discount_rate
     discount_factor = 1 / (1+discount_rate)
     dollars_to_base_year = (1.0 + inflation_rate)^(-(tech_base_year - base_year))
-    @show get_investment_time_stamps(time_mapping)
     inv_tuples = get_investment_time_stamps(time_mapping)
 
     for t in get_investment_time_steps(time_mapping)
 
-        inv_tuple = inv_tuples[t]
-        year = Dates.value.(Dates.Year.(inv_tuple[1]))
-        @show year
+        inv_date = inv_tuples[t]
+        year = Dates.value.(Dates.Year.(inv_date[1]))
         future_to_present_value = discount_factor^(year - base_year)
         npv_proportional_term = proportional_term * capital_recovery_factor * lump_amortized_payments * 
             dollars_to_base_year * future_to_present_value
+        @show technology, proportional_term, npv_proportional_term
         _add_linearcurve_variable_term_to_model!(
             container,
             T(),

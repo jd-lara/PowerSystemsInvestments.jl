@@ -157,8 +157,8 @@ get_resolution(model::InvestmentModel) = get_resolution(get_settings(model))
 function write_results!(
     store,
     model::InvestmentModel,
-    index::Union{DecisionModelIndexType, EmulationModelIndexType},
-    update_timestamp::Dates.DateTime;
+    index::Dates.Date,
+    update_timestamp::Dates.Date;
     exports=nothing,
 )
     if exports !== nothing
@@ -183,8 +183,8 @@ end
 function write_model_dual_results!(
     store,
     model::T,
-    index::Union{DecisionModelIndexType, EmulationModelIndexType},
-    update_timestamp::Dates.DateTime,
+    index::Dates.Date,
+    update_timestamp::Dates.Date,
     export_params::Union{Dict{Symbol, Any}, Nothing},
 ) where {T <: InvestmentModel}
     container = get_optimization_container(model)
@@ -216,8 +216,8 @@ end
 function write_model_variable_results!(
     store,
     model::T,
-    index::Union{DecisionModelIndexType, EmulationModelIndexType},
-    update_timestamp::Dates.DateTime,
+    index::Dates.Date,
+    update_timestamp::Dates.Date,
     export_params::Union{Dict{Symbol, Any}, Nothing},
 ) where {T <: InvestmentModel}
     container = get_optimization_container(model)
@@ -237,7 +237,6 @@ function write_model_variable_results!(
         !should_write_resulting_value(key) && continue
         data = jump_value.(variable)
         write_result!(store, model_name, key, index, update_timestamp, data)
-
         if export_params !== nothing &&
            should_export_variable(export_params[:exports], index, model_name, key)
             horizon_count = export_params[:horizon_count]
@@ -255,8 +254,8 @@ end
 function write_model_aux_variable_results!(
     store,
     model::T,
-    index::Union{DecisionModelIndexType, EmulationModelIndexType},
-    update_timestamp::Dates.DateTime,
+    index::Dates.Date,
+    update_timestamp::Dates.Date,
     export_params::Union{Dict{Symbol, Any}, Nothing},
 ) where {T <: InvestmentModel}
     container = get_optimization_container(model)
@@ -288,8 +287,8 @@ end
 function write_model_expression_results!(
     store,
     model::T,
-    index::Union{DecisionModelIndexType, EmulationModelIndexType},
-    update_timestamp::Dates.DateTime,
+    index::Dates.Date,
+    update_timestamp::Dates.Date,
     export_params::Union{Dict{Symbol, Any}, Nothing},
 ) where {T <: InvestmentModel}
     container = get_optimization_container(model)
@@ -476,7 +475,10 @@ function solve!(
                     @warn "todo: add pre-solve model check back in"
                     #_pre_solve_model_checks(model, optimizer)
                     solve_impl!(model)
-                    current_time = get_initial_time(model)
+                    container = get_optimization_container(model)
+                    time_mapping = get_time_mapping(container)
+                    current_time = get_base_date(time_mapping)
+
                     write_results!(get_store(model), model, current_time, current_time)
                     write_optimizer_stats!(
                         get_store(model),
@@ -571,7 +573,7 @@ function _read_col_name(axes)
 end
 
 function _read_results(model::InvestmentModel, key::OptimizationContainerKey)
-    res = read_results(get_store(model), key)
+    res = first(values(read_results(get_store(model), key)))
     col_name = _read_col_name(axes(res))
     return DataFrames.DataFrame(permutedims(res.data), col_name)
 end

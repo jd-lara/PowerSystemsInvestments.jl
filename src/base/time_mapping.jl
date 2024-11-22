@@ -114,6 +114,7 @@ get_operational_indexes(tm::TimeMapping) = tm.operation.operational_indexes
 get_time_stamps(tm::TimeMapping) = tm.operation.time_stamps
 get_investment_time_stamps(tm::TimeMapping) = tm.investment.time_stamps
 get_inverse_invest_mapping(tm::TimeMapping) = tm.operation.inverse_invest_mapping
+get_base_date(tm::TimeMapping) = first(tm.investment.time_stamps)[1]
 
 function TimeMapping(::Nothing)
     return TimeMapping(InvestmentIntervals(nothing), OperationalPeriods(nothing))

@@ -324,14 +324,9 @@ function write_model_expression_results!(
 end
 
 function init_model_store_params!(model::InvestmentModel)
-    @warn "Update interval once it is in Portfolios"
-    #portfolio = get_system(model)
-    #interval = PSIP.get_forecast_interval(portfolio)
-    @warn "update PSIP to get base power from attached system"
-    base_power = 100.0 #PSIP.get_base_power(portfolio)
-    port_uuid = IS.make_uuid()#IS.get_uuid(system)
+    base_power = 100.0
+    port_uuid = IS.make_uuid()
 
-    # will probably need to include time mapping object here as well
     store_params = ModelStoreParams(
         base_power,
         port_uuid,
@@ -365,7 +360,7 @@ end
 
 function build_pre_step!(model::InvestmentModel)
     TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "Build pre-step" begin
-        @warn "to-do: add template validation"
+        # TODO: add template validation
         #validate_template(model)
         if !isempty(model)
             @info "OptimizationProblem status not ModelBuildStatus.EMPTY. Resetting"
@@ -412,7 +407,7 @@ function build!(
     disable_timer_outputs && TimerOutputs.disable_timer!(BUILD_PROBLEMS_TIMER)
     file_mode = "w"
 
-    @warn "remove recorders"
+    # TODO: "remove recorders"
     logger = IS.configure_logging(get_internal(model), PROBLEM_LOG_FILENAME, file_mode)
     try
         Logging.with_logger(logger) do

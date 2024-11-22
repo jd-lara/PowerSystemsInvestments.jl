@@ -188,8 +188,6 @@ function init_optimization_container!(
     template::InvestmentModelTemplate,
     portfolio::PSIP.Portfolio,
 )
-    @warn "add system units back in"
-    #PSY.set_units_base_system!(sys, "SYSTEM_BASE")
     # The order of operations matter
     transport_model = get_transport_model(template)
     settings = get_settings(container)
@@ -976,7 +974,7 @@ function build_model!(
 
     tech_templates = collect(keys(template.technology_models))
     # Order is required
-    @error "Remember to restore availability code here"
+    # TODO: "Remember to restore availability code here"
     for (i, name_list) in enumerate(tech_names)
         tech_model = tech_templates[i]
         @debug "Building Model for $(get_technology_type(tech_model)) with $(get_investment_formulation(tech_model)) investment formulation" _group =

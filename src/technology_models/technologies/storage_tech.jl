@@ -635,7 +635,7 @@ function add_constraints!(
     )
 
     installed_cap =
-        get_expression(container, CumulativePowerCapacity(), D, "ContinuousInvestment")
+        get_expression(container, CumulativePowerCapacity(), D, tech_model)
     active_power = get_variable(container, V(), D, tech_model)
     operational_indexes = get_operational_indexes(time_mapping)
     consecutive_slices = get_consecutive_slices(time_mapping)
@@ -683,7 +683,7 @@ function add_constraints!(
     )
 
     installed_cap =
-        get_expression(container, CumulativePowerCapacity(), D, "ContinuousInvestment")
+        get_expression(container, CumulativePowerCapacity(), D, tech_model)
     active_power = get_variable(container, V(), D, tech_model)
     operational_indexes = get_operational_indexes(time_mapping)
     consecutive_slices = get_consecutive_slices(time_mapping)
@@ -730,7 +730,7 @@ function add_constraints!(
     )
 
     installed_cap =
-        get_expression(container, CumulativeEnergyCapacity(), D, "ContinuousInvestment")
+        get_expression(container, CumulativeEnergyCapacity(), D, tech_model)
     energy_var = get_variable(container, V(), D, tech_model)
     operational_indexes = get_operational_indexes(time_mapping)
     consecutive_slices = get_consecutive_slices(time_mapping)
@@ -824,7 +824,7 @@ function add_constraints!(
         meta=tech_model,
     )
 
-    installed_cap = get_expression(container, V(), D, "ContinuousInvestment")
+    installed_cap = get_expression(container, V(), D, tech_model)
 
     for d in devices
         name = PSIP.get_name(d)
@@ -863,7 +863,7 @@ function add_constraints!(
         meta=tech_model,
     )
 
-    installed_cap = get_expression(container, V(), D, "ContinuousInvestment")
+    installed_cap = get_expression(container, V(), D, tech_model)
 
     for d in devices
         name = PSIP.get_name(d)
@@ -902,7 +902,7 @@ function objective_function!(
     container::SingleOptimizationContainer,
     devices::Union{Vector{T}, IS.FlattenIteratorWrapper{T}},
     #DeviceModel{T, U},
-    formulation::ContinuousInvestment, #Type{<:PM.AbstractPowerModel},
+    formulation::InvestmentTechnologyFormulation, #Type{<:PM.AbstractPowerModel},
     tech_model::String,
 ) where {T <: PSIP.StorageTechnology}#, U <: BuildCapacity}
     add_capital_cost!(container, BuildEnergyCapacity(), devices, formulation, tech_model)

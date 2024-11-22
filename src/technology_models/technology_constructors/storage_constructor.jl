@@ -72,7 +72,7 @@ function construct_technologies!(
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
     T <: PSIP.StorageTechnology,
-    B <: ContinuousInvestment,
+    B <: InvestmentTechnologyFormulation,
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,
 }
@@ -124,7 +124,7 @@ function construct_technologies!(
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
     T <: PSIP.StorageTechnology,
-    B <: ContinuousInvestment,
+    B <: InvestmentTechnologyFormulation,
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,
 }
@@ -174,7 +174,7 @@ function construct_technologies!(
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
     T <: PSIP.StorageTechnology,
-    B <: ContinuousInvestment,
+    B <: InvestmentTechnologyFormulation,
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,
 }
@@ -219,7 +219,7 @@ function construct_technologies!(
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
     T <: PSIP.StorageTechnology,
-    B <: ContinuousInvestment,
+    B <: InvestmentTechnologyFormulation,
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,
 }
@@ -284,7 +284,7 @@ function construct_technologies!(
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
     T <: PSIP.StorageTechnology,
-    B <: ContinuousInvestment,
+    B <: InvestmentTechnologyFormulation,
     C <: BasicDispatch,
     D <: FeasibilityTechnologyFormulation,
 }

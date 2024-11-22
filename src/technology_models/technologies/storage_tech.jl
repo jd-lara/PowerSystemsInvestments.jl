@@ -770,19 +770,7 @@ function objective_function!(
 ) where {T <: PSIP.StorageTechnology}#, U <: BuildCapacity}
     add_capital_cost!(container, BuildEnergyCapacity(), devices, formulation, tech_model)
     add_capital_cost!(container, BuildPowerCapacity(), devices, formulation, tech_model)
-    add_fixed_om_cost!(
-        container,
-        BuildEnergyCapacity(),
-        devices,
-        formulation,
-        tech_model,
-    )
-    add_fixed_om_cost!(
-        container,
-        BuildPowerCapacity(),
-        devices,
-        formulation,
-        tech_model,
-    )
+    add_fixed_om_cost!(container, BuildEnergyCapacity(), devices, formulation, tech_model)
+    add_fixed_om_cost!(container, BuildPowerCapacity(), devices, formulation, tech_model)
     return
 end

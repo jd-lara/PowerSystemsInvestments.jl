@@ -182,6 +182,7 @@ function _add_linearcurve_cost!(
         _add_linearcurve_variable_term_to_model!(
             container,
             T(),
+            CapitalCost(),
             technology,
             npv_proportional_term,
             t,
@@ -222,6 +223,7 @@ function _add_linearcurve_cost!(
         _add_linearcurve_variable_term_to_model!(
             container,
             T(),
+            FixedOperationModelCost(),
             technology,
             npv_proportional_term,
             t,
@@ -262,6 +264,7 @@ function _add_linearcurve_cost!(
         _add_linearcurve_variable_term_to_model!(
             container,
             T(),
+            VariableOMCost(),
             technology,
             npv_proportional_term,
             t,
@@ -302,6 +305,7 @@ function _add_linearcurve_cost!(
             _add_linearcurve_variable_term_to_model!(
                 container,
                 T(),
+                VariableOMCost(),
                 technology,
                 weight * npv_proportional_term,
                 t,
@@ -316,6 +320,7 @@ end
 function _add_linearcurve_variable_term_to_model!(
     container::SingleOptimizationContainer,
     ::T,
+    ::VariableOMCost,
     technology::PSIP.Technology,
     proportional_term_per_unit::Float64,
     time_period::Int,
@@ -352,6 +357,7 @@ end
 function _add_linearcurve_variable_term_to_model!(
     container::SingleOptimizationContainer,
     ::T,
+    ::VariableOMCost,
     technology::PSIP.Technology,
     proportional_term_per_unit::Float64,
     time_period::Int,
@@ -389,6 +395,40 @@ end
 function _add_linearcurve_variable_term_to_model!(
     container::SingleOptimizationContainer,
     ::T,
+    ::FixedOperationModelCost,
+    technology::PSIP.Technology,
+    proportional_term_per_unit::Float64,
+    time_period::Int,
+    tech_model::String,
+) where {T <: InvestmentVariableType}
+
+    # TODO: How are we handling investment vs. operation resolutions?
+    #resolution = get_resolution(container)
+    dt = 1
+    linear_cost = _add_proportional_term!(
+        container,
+        T(),
+        technology,
+        proportional_term_per_unit * dt,
+        time_period,
+        tech_model,
+    )
+    add_to_expression!(
+        container,
+        FixedOperationModelCost,
+        linear_cost,
+        technology,
+        time_period,
+        tech_model,
+    )
+    return
+end
+
+# Add proportional terms to objective function and expression
+function _add_linearcurve_variable_term_to_model!(
+    container::SingleOptimizationContainer,
+    ::T,
+    ::CapitalCost,
     technology::PSIP.Technology,
     proportional_term_per_unit::Float64,
     time_period::Int,
@@ -397,7 +437,6 @@ function _add_linearcurve_variable_term_to_model!(
 
     # TODO: How are we handling investment vs. operation resolutions?
     #resolution = get_resolution(container)
-
     dt = 1
     linear_cost = _add_proportional_term!(
         container,
@@ -421,6 +460,7 @@ end
 function _add_linearcurve_variable_term_to_model!(
     container::SingleOptimizationContainer,
     ::T,
+    ::CapitalCost,
     technology::PSIP.Technology,
     proportional_term_per_unit::Float64,
     time_period::Int,
@@ -453,6 +493,7 @@ end
 function _add_linearcurve_variable_term_to_model!(
     container::SingleOptimizationContainer,
     ::T,
+    ::CapitalCost,
     technology::PSIP.Technology,
     proportional_term_per_unit::Float64,
     time_period::Int,
@@ -485,6 +526,7 @@ end
 function _add_linearcurve_variable_term_to_model!(
     container::SingleOptimizationContainer,
     ::T,
+    ::CapitalCost,
     technology::PSIP.Technology,
     proportional_term_per_unit::Float64,
     time_period::Int,
@@ -517,6 +559,7 @@ end
 function _add_linearcurve_variable_term_to_model!(
     container::SingleOptimizationContainer,
     ::T,
+    ::CapitalCost,
     technology::PSIP.Technology,
     proportional_term_per_unit::Float64,
     time_period::Int,
@@ -549,6 +592,7 @@ end
 function _add_linearcurve_variable_term_to_model!(
     container::SingleOptimizationContainer,
     ::T,
+    ::CapitalCost,
     technology::PSIP.Technology,
     proportional_term_per_unit::Float64,
     time_period::Int,

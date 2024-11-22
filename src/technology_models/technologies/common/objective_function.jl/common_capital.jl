@@ -50,6 +50,7 @@ function _add_proportional_term!(
     #@debug "Linear Variable Cost" _group = LOG_GROUP_COST_FUNCTIONS component_name
     variable = get_variable(container, T(), U, tech_model)[technology_name, time_period]
     lin_cost = variable * linear_term
+    @show lin_cost
     add_to_objective_investment_expression!(container, lin_cost)
     return lin_cost
 end

@@ -66,7 +66,7 @@ function add_fixed_om_cost!(
     tech_model::String,
 ) where {
     T <: PSIP.SupplyTechnology,
-    U <: CumulativeCapacity,
+    U <: BuildCapacity,
     V <: InvestmentTechnologyFormulation,
 }
     for d in devices
@@ -84,7 +84,7 @@ function add_fixed_om_cost!(
     tech_model::String,
 ) where {
     T <: PSIP.StorageTechnology,
-    U <: CumulativeEnergyCapacity,
+    U <: BuildEnergyCapacity,
     V <: InvestmentTechnologyFormulation,
 }
     for d in devices
@@ -102,7 +102,7 @@ function add_fixed_om_cost!(
     tech_model::String,
 ) where {
     T <: PSIP.StorageTechnology,
-    U <: CumulativePowerCapacity,
+    U <: BuildPowerCapacity,
     V <: InvestmentTechnologyFormulation,
 }
     for d in devices

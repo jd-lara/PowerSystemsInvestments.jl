@@ -772,14 +772,14 @@ function objective_function!(
     add_capital_cost!(container, BuildPowerCapacity(), devices, formulation, tech_model)
     add_fixed_om_cost!(
         container,
-        CumulativeEnergyCapacity(),
+        BuildEnergyCapacity(),
         devices,
         formulation,
         tech_model,
     )
     add_fixed_om_cost!(
         container,
-        CumulativePowerCapacity(),
+        BuildPowerCapacity(),
         devices,
         formulation,
         tech_model,

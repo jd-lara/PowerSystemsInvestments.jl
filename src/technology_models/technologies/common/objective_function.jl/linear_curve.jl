@@ -19,7 +19,7 @@ function _add_cost_to_objective!(
     cost_component = PSY.get_function_data(value_curve)
     proportional_term = PSY.get_proportional_term(cost_component)
     @debug "Cost is assumed to be in natural units: \$/MWh"
-    @warn "TODO: multiplier"
+    # TODO: multiplier
     multiplier = 1.0 #objective_function_multiplier(T(), U())
     _add_linearcurve_cost!(
         container,
@@ -287,8 +287,6 @@ function _add_linearcurve_cost!(
     proportional_term::Float64,
     tech_model::String,
 ) where {T <: OperationsVariableType}
-    @warn "TODO: Add Scaling to Operational Terms to compare with Capital Terms"
-    @warn "TODO: Add discount factor effect"
     base_year = get_base_year(container)
     discount_rate = get_discount_rate(container)
     inflation_rate = get_inflation_rate(container)
@@ -321,29 +319,21 @@ function _add_linearcurve_cost!(
 end
 
 # Add proportional terms to objective function and expression
+
 function _add_linearcurve_variable_term_to_model!(
     container::SingleOptimizationContainer,
     ::T,
     ::VariableOMCost,
     technology::PSIP.Technology,
-    proportional_term_per_unit::Float64,
+    proportional_term::Float64,
     time_period::Int,
     tech_model::String,
 ) where {T <: ActivePowerVariable}
-    resolution = get_resolution(container)
-
-    # TODO: Need to add in some way to calculate how to scale/weight these representative days/hours up to the full investment period
-    # @warn: Update hard code resolution
-    operational_timepoint_scaling = 365
-    resolution = Dates.Hour(1)
-    dt =
-        Dates.value(Dates.Millisecond(resolution)) / MILLISECONDS_IN_HOUR *
-        operational_timepoint_scaling
     linear_cost = _add_proportional_term!(
         container,
         T(),
         technology,
-        proportional_term_per_unit * dt,
+        proportional_term,
         time_period,
         tech_model,
     )
@@ -363,24 +353,15 @@ function _add_linearcurve_variable_term_to_model!(
     ::T,
     ::VariableOMCost,
     technology::PSIP.Technology,
-    proportional_term_per_unit::Float64,
+    proportional_term::Float64,
     time_period::Int,
     tech_model::String,
 ) where {T <: Union{ActiveInPowerVariable, ActiveOutPowerVariable}}
-    resolution = get_resolution(container)
-
-    # TODO: Need to add in some way to calculate how to scale/weight these representative days/hours up to the full investment period
-    # @warn: Update hard code resolution
-    operational_timepoint_scaling = 365
-    resolution = Dates.Hour(1)
-    dt =
-        Dates.value(Dates.Millisecond(resolution)) / MILLISECONDS_IN_HOUR *
-        operational_timepoint_scaling
     linear_cost = _add_proportional_term!(
         container,
         T(),
         technology,
-        proportional_term_per_unit * dt,
+        proportional_term,
         time_period,
         tech_model,
     )
@@ -401,19 +382,15 @@ function _add_linearcurve_variable_term_to_model!(
     ::T,
     ::FixedOperationModelCost,
     technology::PSIP.Technology,
-    proportional_term_per_unit::Float64,
+    proportional_term::Float64,
     time_period::Int,
     tech_model::String,
 ) where {T <: InvestmentVariableType}
-
-    # TODO: How are we handling investment vs. operation resolutions?
-    #resolution = get_resolution(container)
-    dt = 1
     linear_cost = _add_proportional_term!(
         container,
         T(),
         technology,
-        proportional_term_per_unit * dt,
+        proportional_term,
         time_period,
         tech_model,
     )
@@ -434,19 +411,15 @@ function _add_linearcurve_variable_term_to_model!(
     ::T,
     ::CapitalCost,
     technology::PSIP.Technology,
-    proportional_term_per_unit::Float64,
+    proportional_term::Float64,
     time_period::Int,
     tech_model::String,
 ) where {T <: BuildCapacity}
-
-    # TODO: How are we handling investment vs. operation resolutions?
-    #resolution = get_resolution(container)
-    dt = 1
     linear_cost = _add_proportional_term!(
         container,
         T(),
         technology,
-        proportional_term_per_unit * dt,
+        proportional_term,
         time_period,
         tech_model,
     )
@@ -466,20 +439,15 @@ function _add_linearcurve_variable_term_to_model!(
     ::T,
     ::CapitalCost,
     technology::PSIP.Technology,
-    proportional_term_per_unit::Float64,
+    proportional_term::Float64,
     time_period::Int,
     tech_model::String,
 ) where {T <: CumulativeCapacity}
-
-    # TODO: How are we handling investment vs. operation resolutions?
-    #resolution = get_resolution(container)
-
-    dt = 1
     linear_cost = _add_proportional_term!(
         container,
         T(),
         technology,
-        proportional_term_per_unit * dt,
+        proportional_term,
         time_period,
         tech_model,
     )
@@ -499,20 +467,15 @@ function _add_linearcurve_variable_term_to_model!(
     ::T,
     ::CapitalCost,
     technology::PSIP.Technology,
-    proportional_term_per_unit::Float64,
+    proportional_term::Float64,
     time_period::Int,
     tech_model::String,
 ) where {T <: BuildEnergyCapacity}
-
-    # TODO: How are we handling investment vs. operation resolutions?
-    #resolution = get_resolution(container)
-
-    dt = 1
     linear_cost = _add_proportional_term!(
         container,
         T(),
         technology,
-        proportional_term_per_unit * dt,
+        proportional_term,
         time_period,
         tech_model,
     )
@@ -532,20 +495,15 @@ function _add_linearcurve_variable_term_to_model!(
     ::T,
     ::CapitalCost,
     technology::PSIP.Technology,
-    proportional_term_per_unit::Float64,
+    proportional_term::Float64,
     time_period::Int,
     tech_model::String,
 ) where {T <: BuildPowerCapacity}
-
-    # TODO: How are we handling investment vs. operation resolutions?
-    #resolution = get_resolution(container)
-
-    dt = 1
     linear_cost = _add_proportional_term!(
         container,
         T(),
         technology,
-        proportional_term_per_unit * dt,
+        proportional_term,
         time_period,
         tech_model,
     )
@@ -565,20 +523,15 @@ function _add_linearcurve_variable_term_to_model!(
     ::T,
     ::CapitalCost,
     technology::PSIP.Technology,
-    proportional_term_per_unit::Float64,
+    proportional_term::Float64,
     time_period::Int,
     tech_model::String,
 ) where {T <: CumulativePowerCapacity}
-
-    # TODO: How are we handling investment vs. operation resolutions?
-    #resolution = get_resolution(container)
-
-    dt = 1
     linear_cost = _add_proportional_term!(
         container,
         T(),
         technology,
-        proportional_term_per_unit * dt,
+        proportional_term,
         time_period,
         tech_model,
     )
@@ -598,20 +551,15 @@ function _add_linearcurve_variable_term_to_model!(
     ::T,
     ::CapitalCost,
     technology::PSIP.Technology,
-    proportional_term_per_unit::Float64,
+    proportional_term::Float64,
     time_period::Int,
     tech_model::String,
 ) where {T <: CumulativeEnergyCapacity}
-
-    # TODO: How are we handling investment vs. operation resolutions?
-    #resolution = get_resolution(container)
-
-    dt = 1
     linear_cost = _add_proportional_term!(
         container,
         T(),
         technology,
-        proportional_term_per_unit * dt,
+        proportional_term,
         time_period,
         tech_model,
     )

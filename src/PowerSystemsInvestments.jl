@@ -2,11 +2,14 @@ module PowerSystemsInvestments
 
 ### Exports ###
 
-# Base models
+### Base models ###
 export InvestmentModel
 export InvestmentModelTemplate
 export TransportModel
 export OptimizationProblemResults
+
+### Algorithms ###
+export SingleInstanceSolve
 
 ### Technology Models ###
 export TechnologyModel
@@ -23,6 +26,7 @@ export OperationalRepresentativeDays
 export RepresentativePeriods
 
 ### Investment Formulations ###
+export StaticLoadInvestment
 export ContinuousInvestment
 export IntegerInvestment
 
@@ -75,13 +79,6 @@ export get_constraint
 export get_parameter
 export get_expression
 
-using DocStringExtensions
-
-@template (FUNCTIONS, METHODS) = """
-                                 $(TYPEDSIGNATURES)
-                                 $(DOCSTRING)
-                                 """
-
 #### Imports ###
 
 import InfrastructureSystems
@@ -110,52 +107,7 @@ const PM = PowerModels
 const PNM = PowerNetworkMatrices
 const MOPFM = MOI.FileFormats.Model
 
-### Exports ###
-export InvestmentModel
-export InvestmentModelTemplate
-export TransportModel
-export OptimizationProblemResults
-
-### Capital Model
-export DiscountedCashFlow
-export AggregateOperatingCost
-export RepresentativePeriods
-
-export SingleRegionBalanceModel
-export MultiRegionBalanceModel
-
-## Variables ##
-export BuildCapacity
-export ActivePowerVariable
-export BuildEnergyCapacity
-export BuildPowerCapacity
-export ActiveInPowerVariable
-export ActiveOutPowerVariable
-export EnergyVariable
-
-## Expressions ##
-export CumulativeCapacity
-export CapitalCost
-export TotalCapitalCost
-export FixedOperationModelCost
-export VariableOMCost
-export SupplyTotal
-export DemandTotal
-export EnergyBalance
-export CumulativePowerCapacity
-export CumulativeEnergyCapacity
-export FeasibilitySurplus
-
-#remove later, just for testing
-export objective_function!
-export add_expression!
-export add_to_expression!
-
 using DocStringExtensions
-
-# methods
-export build!
-export solve!
 
 @template (FUNCTIONS, METHODS) = """
                                  $(TYPEDSIGNATURES)
@@ -226,7 +178,10 @@ import InfrastructureSystems.Optimization:
     serialize_results,
     get_timestamps,
     get_model_base_power,
-    get_objective_value
+    get_objective_value,
+    read_variable,
+    read_dual,
+    read_expression
 import TimerOutputs
 
 ####

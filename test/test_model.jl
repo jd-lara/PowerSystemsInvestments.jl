@@ -17,103 +17,58 @@
     template = InvestmentModelTemplate(
         capital,
         operations,
-        RepresentativePeriods(Vector{Vector{Dates}}()),
+        feasibility,
         TransportModel(MultiRegionBalanceModel, use_slacks=false),
     )
 
-    demand_model = PSIN.TechnologyModel(
+    set_technology_model!(
+        template,
+        ["demand1", "demand2"],
         PSIP.DemandRequirement{PSY.PowerLoad},
-        PSIN.StaticLoadInvestment,
-        PSIN.BasicDispatch,
-        PSIN.BasicDispatchFeasibility,
+        StaticLoadInvestment,
+        BasicDispatch,
+        BasicDispatchFeasibility,
     )
 
-    vre_model = PSIN.TechnologyModel(
+    set_technology_model!(
+        template,
+        ["wind"],
         PSIP.SupplyTechnology{PSY.RenewableDispatch},
-        PSIN.ContinuousInvestment,
-        PSIN.BasicDispatch,
-        PSIN.BasicDispatchFeasibility,
+        ContinuousInvestment,
+        BasicDispatch,
+        BasicDispatchFeasibility,
     )
 
-    thermal_modelA = PSIN.TechnologyModel(
+    set_technology_model!(
+        template,
+        ["cheap_thermal", "expensive_thermal"],
         PSIP.SupplyTechnology{PSY.ThermalStandard},
-        PSIN.ContinuousInvestment,
-        PSIN.BasicDispatch,
-        PSIN.BasicDispatchFeasibility,
+        ContinuousInvestment,
+        BasicDispatch,
+        BasicDispatchFeasibility,
     )
 
-    thermal_modelB = PSIN.TechnologyModel(
-        PSIP.SupplyTechnology{PSY.ThermalStandard},
-        PSIN.IntegerInvestment,
-        PSIN.BasicDispatch,
-        PSIN.BasicDispatchFeasibility,
-    )
-
-    ac_model = PSIN.TechnologyModel(
+    set_technology_model!(
+        template,
+        ["test_branch"],
         PSIP.ACTransportTechnology{PSY.ACBranch},
-        PSIN.ContinuousInvestment,
-        PSIN.BasicDispatch,
-        PSIN.BasicDispatchFeasibility,
+        ContinuousInvestment,
+        BasicDispatch,
+        BasicDispatchFeasibility,
     )
 
     m = InvestmentModel(
         template,
-        PSIN.SingleInstanceSolve,
+        SingleInstanceSolve,
         p_5bus;
         optimizer=HiGHS.Optimizer,
         portfolio_to_file=false,
         store_variable_names=true,
     )
 
-    tech_models = template.technology_models
-    tech_models[thermal_modelA] = ["cheap_thermal", "expensive_thermal"]
-    tech_models[vre_model] = ["wind"]
-    tech_models[demand_model] = ["demand1", "demand2"]
-
-    branch_models = template.branch_models
-    branch_models[ac_model] = ["test_branch"]
-
-    build!(m; output_dir=mktempdir(; cleanup=true))
-    # TODO: Fix Storing results
-    # @test solve!(m) == PSINV.RunStatus.SUCCESSFULLY_FINALIZED
-
-    JuMP.optimize!(m.internal.container.JuMPmodel)
-    obj = JuMP.objective_value(m.internal.container.JuMPmodel)#IS.get_objective_value(res) not working for some reason?
-    @test isapprox(obj, 9.58e9; atol=1e8)
-
-    for var in all_variables(m.internal.container.JuMPmodel)
-        println("Variable name: ", name(var), ", Optimized value: ", value(var))
-    end
-
-    #=
-    vars = res.variable_values
-    @test PSINV.VariableKey(ActivePowerVariable, PSIP.SupplyTechnology{ThermalStandard}) in
-          keys(vars)
-    @test PSINV.VariableKey(
-        ActivePowerVariable,
-        PSIP.SupplyTechnology{RenewableDispatch},
-    ) in keys(vars)
-    # Note that a lot of the read variable functions and stuff from IS don't work for investment variables because they are trying to use the operations timesteps
-    #@test size(IS.Optimization.read_variable(res, PSINV.VariableKey(BuildCapacity, PSIP.SupplyTechnology{ThermalStandard}))) == (2, 2)
-    #@test size(IS.Optimization.read_variable(res, PSINV.VariableKey(BuildCapacity, PSIP.SupplyTechnology{RenewableDispatch}))) == (2, 1)
-    # Extra column for datetime
-    @test size(
-        IS.Optimization.read_variable(
-            res,
-            PSINV.VariableKey(ActivePowerVariable, PSIP.SupplyTechnology{ThermalStandard}),
-        ),
-    ) == (48, 3)
-    @test size(
-        IS.Optimization.read_variable(
-            res,
-            PSINV.VariableKey(
-                ActivePowerVariable,
-                PSIP.SupplyTechnology{RenewableDispatch},
-            ),
-        ),
-    ) == (48, 2)
-    #@test size(IS.Optimization.read_expression(res, PSINV.VariableKey(CumulativeCapacity, PSIP.SupplyTechnology{RenewableDispatch}))) == (2, 2)
-    =#
+    @test build!(m; output_dir=mktempdir(; cleanup=true)) ==
+          IS.Optimization.ModelBuildStatusModule.ModelBuildStatus.BUILT
+    @test solve!(m) == PSINV.RunStatus.SUCCESSFULLY_FINALIZED
 end
 
 @testset "Test OptimizationProblemResults interfaces" begin

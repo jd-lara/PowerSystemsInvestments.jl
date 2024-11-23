@@ -306,7 +306,9 @@ function test_data()
     #####################
 
     discount_rate = 0.07
-    p_5bus = Portfolio(discount_rate)
+    inflation_rate = 0.05
+    base_year = 2025
+    p_5bus = Portfolio(discount_rate, inflation_rate, base_year)
 
     PSIP.add_region!(p_5bus, z1)
     PSIP.add_region!(p_5bus, z2)

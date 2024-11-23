@@ -95,7 +95,7 @@ end
         transport_model,
     )
 
-    @test length(container.expressions) == 1
+    @test length(container.expressions) == 2
     @test length(container.variables) == 0
 
     #SupplyTechnology{RenewableDispatch}
@@ -118,7 +118,7 @@ end
         transport_model,
     )
 
-    @test length(container.expressions) == 2
+    @test length(container.expressions) == 3
     @test length(container.variables) == 2
 
     v = PSINV.get_variable(
@@ -166,7 +166,7 @@ end
         transport_model,
     )
 
-    @test length(container.expressions) == 3
+    @test length(container.expressions) == 4
     @test length(container.variables) == 4
 
     v = PSINV.get_variable(

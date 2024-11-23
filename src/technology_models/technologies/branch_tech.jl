@@ -10,10 +10,6 @@ get_variable_multiplier(::ActivePowerVariable, ::Type{GenericTransportTechnology
 
 #! format: on
 
-function get_default_time_series_names(::Type{U}) where {U <: PSIP.SupplyTechnology}
-    return "ops_variable_cap_factor"
-end
-
 function get_default_attributes(
     ::Type{U},
     ::Type{V},
@@ -74,6 +70,22 @@ function add_expression!(
         #lb !== nothing && JuMP.set_lower_bound(variable[name, t], lb)
     end
 
+    return
+end
+
+function add_to_expression!(
+    container::SingleOptimizationContainer,
+    expression_type::T,
+    devices::U,
+    formulation::BasicDispatch,
+    tech_model::String,
+    transport_model::TransportModel{V},
+) where {
+    T <: EnergyBalance,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+    V <: SingleRegionBalanceModel,
+} where {D <: GenericTransportTechnology}
+    # Do nothing
     return
 end
 

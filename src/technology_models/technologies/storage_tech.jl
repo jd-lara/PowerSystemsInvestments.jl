@@ -30,10 +30,6 @@ get_variable_multiplier(::ActiveOutPowerVariable, ::Type{PSIP.StorageTechnology}
 
 #! format: on
 
-function get_default_time_series_names(::Type{U}) where {U <: PSIP.SupplyTechnology}
-    return "ops_variable_cap_factor"
-end
-
 function get_default_attributes(
     ::Type{U},
     ::Type{V},

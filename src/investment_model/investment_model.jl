@@ -123,7 +123,7 @@ function get_timestamps(model::InvestmentModel)
     return range(start_time; length=horizon_count, step=resolution)
 end
 
-@warn "Update once portfolio has base power or we decide what to do with it"
+# TODO: "Update once portfolio has base power or we decide what to do with it"
 get_problem_base_power(model::InvestmentModel) = 100.0 #PSIP.get_base_power(model.portfolio)
 get_settings(model::InvestmentModel) = get_optimization_container(model).settings
 get_optimizer_stats(model::InvestmentModel) =

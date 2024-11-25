@@ -19,7 +19,7 @@ function construct_technologies!(
     #PSIP.get_technologies(T, p)
 
     #convert technology model to string for container metadata
-    tech_model = IS.strip_module_name(B)
+    tech_model = metadata_string(technology_model)
 
     # BuildCapacity variable
     add_variable!(container, BuildCapacity(), devices, B(), tech_model)
@@ -52,7 +52,7 @@ function construct_technologies!(
     #PSIP.get_technologies(T, p)
 
     #convert technology model to string for container metadata
-    tech_model = IS.strip_module_name(B)
+    tech_model = metadata_string(technology_model)
 
     # BuildCapacity variable
     add_variable!(container, BuildCapacity(), devices, B(), tech_model)
@@ -82,7 +82,7 @@ function construct_technologies!(
     devices = [PSIP.get_technology(T, p, n) for n in names]
 
     #convert technology model to string for container metadata
-    tech_model = IS.strip_module_name(B)
+    tech_model = metadata_string(technology_model)
 
     #ActivePowerVariable
     add_variable!(container, ActivePowerVariable(), devices, C(), tech_model)
@@ -120,7 +120,7 @@ function construct_technologies!(
     devices = [PSIP.get_technology(T, p, n) for n in names]
 
     #convert technology model to string for container metadata
-    tech_model = IS.strip_module_name(D)
+    tech_model = metadata_string(technology_model)
     add_variable!(container, ActivePowerVariable(), devices, C(), tech_model)
 
     # SupplyTotal
@@ -154,7 +154,7 @@ function construct_technologies!(
     devices = [PSIP.get_technology(T, p, n) for n in names]
 
     #convert technology model to string for container metadata
-    tech_model = IS.strip_module_name(B)
+    tech_model = metadata_string(technology_model)
 
     # Capital Component of objective function
     objective_function!(container, devices, B(), tech_model)
@@ -191,7 +191,7 @@ function construct_technologies!(
     devices = [PSIP.get_technology(T, p, n) for n in names]
 
     #convert technology model to string for container metadata
-    tech_model = IS.strip_module_name(B)
+    tech_model = metadata_string(technology_model)
 
     # Operations Component of objective function
     objective_function!(container, devices, C(), tech_model)
@@ -229,8 +229,7 @@ function construct_technologies!(
     devices = [PSIP.get_technology(T, p, n) for n in names]
 
     #convert technology model to string for container metadata
-    #tech_model = IS.strip_module_name(typeof(technology_model))
-    tech_model = IS.strip_module_name(D)
+    tech_model = metadata_string(technology_model)
     add_constraints!(
         container,
         ActivePowerLimitsConstraint(),

@@ -30,10 +30,6 @@ get_variable_multiplier(::ActiveOutPowerVariable, ::Type{PSIP.StorageTechnology}
 
 #! format: on
 
-function get_default_time_series_names(::Type{U}) where {U <: PSIP.SupplyTechnology}
-    return "ops_variable_cap_factor"
-end
-
 function get_default_attributes(
     ::Type{U},
     ::Type{V},
@@ -907,19 +903,7 @@ function objective_function!(
 ) where {T <: PSIP.StorageTechnology}#, U <: BuildCapacity}
     add_capital_cost!(container, BuildEnergyCapacity(), devices, formulation, tech_model)
     add_capital_cost!(container, BuildPowerCapacity(), devices, formulation, tech_model)
-    add_fixed_om_cost!(
-        container,
-        CumulativeEnergyCapacity(),
-        devices,
-        formulation,
-        tech_model,
-    )
-    add_fixed_om_cost!(
-        container,
-        CumulativePowerCapacity(),
-        devices,
-        formulation,
-        tech_model,
-    )
+    add_fixed_om_cost!(container, BuildEnergyCapacity(), devices, formulation, tech_model)
+    add_fixed_om_cost!(container, BuildPowerCapacity(), devices, formulation, tech_model)
     return
 end

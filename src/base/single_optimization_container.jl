@@ -188,8 +188,6 @@ function init_optimization_container!(
     template::InvestmentModelTemplate,
     portfolio::PSIP.Portfolio,
 )
-    @warn "add system units back in"
-    #PSY.set_units_base_system!(sys, "SYSTEM_BASE")
     # The order of operations matter
     transport_model = get_transport_model(template)
     settings = get_settings(container)
@@ -976,7 +974,7 @@ function build_model!(
 
     tech_templates = collect(keys(template.technology_models))
     # Order is required
-    @error "Remember to restore availability code here"
+    # TODO: "Remember to restore availability code here"
     for (i, name_list) in enumerate(tech_names)
         tech_model = tech_templates[i]
         @debug "Building Model for $(get_technology_type(tech_model)) with $(get_investment_formulation(tech_model)) investment formulation" _group =
@@ -1246,4 +1244,25 @@ function check_duplicate_names(
     if duplicate
         throw(ArgumentError("$n is already being used with another technology model"))
     end
+end
+
+function serialize_metadata!(container::SingleOptimizationContainer, output_dir::String)
+    for key in Iterators.flatten((
+        keys(container.constraints),
+        keys(container.duals),
+        keys(container.variables),
+        keys(container.aux_variables),
+        keys(container.expressions),
+    ))
+        encoded_key = encode_key_as_string(key)
+        if IS.Optimization.has_container_key(container.metadata, encoded_key)
+            # Constraints and Duals can store the same key.
+            IS.@assert_op key ==
+                          IS.Optimization.get_container_key(container.metadata, encoded_key)
+        end
+        IS.Optimization.add_container_key!(container.metadata, encoded_key, key)
+    end
+
+    filename = IS.Optimization._make_metadata_filename(output_dir)
+    #Serialization.serialize(filename, container.metadata)
 end

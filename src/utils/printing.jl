@@ -50,3 +50,46 @@ function _show_method(io::IO, template::InvestmentModelTemplate, backend::Symbol
     =#
     return
 end
+
+function Base.show(io::IO, ::MIME"text/plain", input::OptimizationProblemResults)
+    _show_method(io, input, :auto)
+end
+
+function Base.show(io::IO, ::MIME"text/html", input::OptimizationProblemResults)
+    _show_method(io, input, :html; standalone=false, tf=PrettyTables.tf_html_simple)
+end
+
+function _show_method(
+    io::IO,
+    results::T,
+    backend::Symbol;
+    kwargs...,
+) where {T <: OptimizationProblemResults}
+    values = Dict{String, Vector{String}}(
+        "Variables" => list_variable_names(results),
+        "Auxiliary variables" => list_aux_variable_names(results),
+        "Duals" => list_dual_names(results),
+        "Expressions" => list_expression_names(results),
+    )
+
+    if hasfield(T, :problem)
+        name = results.problem
+    else
+        name = "PowerSystemsInvestments"
+    end
+
+    for (k, val) in values
+        if !isempty(val)
+            println(io)
+            PrettyTables.pretty_table(
+                io,
+                val;
+                show_header=false,
+                backend=Val(backend),
+                title="$name Problem $k Results",
+                alignment=:l,
+                kwargs...,
+            )
+        end
+    end
+end

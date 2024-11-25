@@ -864,6 +864,51 @@ function add_constraints!(
     end
 end
 
+# Initial State of Charge
+function add_constraints!(
+    container::SingleOptimizationContainer,
+    ::T,
+    ::V,
+    devices::U,
+    tech_model::String,
+) where {
+    T <: InitialStateOfChargeConstraint,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+    V <: EnergyBalance,
+} where {D <: PSIP.StorageTechnology}
+    time_mapping = get_time_mapping(container)
+    time_steps = get_investment_time_steps(time_mapping)
+
+    device_names = PSIP.get_name.(devices)
+    con = add_constraints_container!(
+        container,
+        T(),
+        D,
+        device_names,
+        time_steps,
+        meta=tech_model,
+    )
+    
+    storage_state = get_variable(container, V(), D, tech_model)
+
+    operational_indexes = get_operational_indexes(time_mapping)
+    consecutive_slices = get_consecutive_slices(time_mapping)
+    inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
+
+    op_ix = operational_indexes[1]
+    time_slices = consecutive_slices[op_ix]
+
+    for d in devices
+        name = PSIP.get_name(d)
+        initial_state_of_charge = PSIP.get_initial_state_of_charge(d)
+
+        con[name, t] = JuMP.@constraint(
+            get_jump_model(container),
+            storage_state[name, time_slices[1]] == initial_state_of_charge
+        )
+    end
+
+end
 ########################### Objective Function Calls#############################################
 # These functions are custom implementations of the cost data. In the file objective_functions.jl there are default implementations. Define these only if needed.
 

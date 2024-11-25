@@ -271,6 +271,15 @@ function construct_technologies!(
         tech_model,
     )
 
+    #State of charge constraint
+    add_constraints!(
+        container,
+        InitialStateOfChargeConstraint(),
+        EnergyVariable(),
+        devices,
+        tech_model,
+    )
+
     return
 end
 

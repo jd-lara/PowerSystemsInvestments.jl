@@ -615,9 +615,7 @@ function add_constraints!(
     U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
     V <: ActiveOutPowerVariable,
 } where {D <: PSIP.StorageTechnology}
-    # Hard Code Mapping #
-    # TODO: Remove
-    @warn("creating hard code mapping. Remove it later")
+
     time_mapping = get_time_mapping(container)
     time_steps = get_time_steps(time_mapping)
     device_names = PSIP.get_name.(devices)
@@ -663,9 +661,7 @@ function add_constraints!(
     U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
     V <: ActiveInPowerVariable,
 } where {D <: PSIP.StorageTechnology}
-    # Hard Code Mapping #
-    # TODO: Remove
-    @warn("creating hard code mapping. Remove it later")
+
     time_mapping = get_time_mapping(container)
     time_steps = get_time_steps(time_mapping)
     device_names = PSIP.get_name.(devices)
@@ -710,9 +706,7 @@ function add_constraints!(
     U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
     V <: EnergyVariable,
 } where {D <: PSIP.StorageTechnology}
-    # Hard Code Mapping #
-    # TODO: Remove
-    @warn("creating hard code mapping. Remove it later")
+
     time_mapping = get_time_mapping(container)
     time_steps = get_time_steps(time_mapping)
     device_names = PSIP.get_name.(devices)
@@ -759,9 +753,6 @@ function add_constraints!(
     V <: EnergyVariable,
 } where {D <: PSIP.StorageTechnology}
 
-    # Hard Code Mapping #
-    # TODO: Remove
-    @warn("creating hard code mapping. Remove it later")
     time_mapping = get_time_mapping(container)
     time_steps = get_time_steps(time_mapping)
     device_names = PSIP.get_name.(devices)

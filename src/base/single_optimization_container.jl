@@ -972,20 +972,31 @@ function build_model!(
         error("Multiple technology models defined for the same technology")
     end
 
+    # Only build the feasibility model if there are feasibility timesteps
+    if is_feasibility_empty(get_time_mapping(container))
+        models = [
+            template.capital_model,
+            template.operation_model,
+        ]
+    else
+        models = [
+            template.capital_model,
+            template.operation_model,
+            template.feasibility_model,
+        ]
+    end
+
     tech_templates = collect(keys(template.technology_models))
     # Order is required
-    # TODO: "Remember to restore availability code here"
+    # TODO: Remember to restore availability code here
+    # TODO: 
     for (i, name_list) in enumerate(tech_names)
         tech_model = tech_templates[i]
         @debug "Building Model for $(get_technology_type(tech_model)) with $(get_investment_formulation(tech_model)) investment formulation" _group =
             LOG_GROUP_OPTIMIZATION_CONTAINER
         TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(get_technology_type(tech_model))" begin
             if validate_available_technologies(tech_model, port)
-                for mod in [
-                    template.capital_model,
-                    template.operation_model,
-                    template.feasibility_model,
-                ]
+                for mod in models
                     construct_technologies!(
                         container,
                         port,
@@ -1027,11 +1038,7 @@ function build_model!(
             LOG_GROUP_OPTIMIZATION_CONTAINER
         TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "$(get_technology_type(branch_model))" begin
             if validate_available_technologies(branch_model, port)
-                for mod in [
-                    template.capital_model,
-                    template.operation_model,
-                    template.feasibility_model,
-                ]
+                for mod in models
                     construct_technologies!(
                         container,
                         port,

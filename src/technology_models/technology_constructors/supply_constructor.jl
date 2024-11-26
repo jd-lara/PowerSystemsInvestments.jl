@@ -121,9 +121,8 @@ function construct_technologies!(
 
     #convert technology model to string for container metadata
     tech_model = metadata_string(technology_model)
-    add_variable!(container, ActivePowerVariable(), devices, C(), tech_model)
 
-    # SupplyTotal
+    # Feasibility Surplus
     add_to_expression!(
         container,
         FeasibilitySurplus(),
@@ -132,7 +131,7 @@ function construct_technologies!(
         tech_model,
         transport_model,
     )
-    # add_to_expression!(container, SupplyTotal(), devices, C(), tech_model, transport_model)
+
     return
 end
 
@@ -230,12 +229,6 @@ function construct_technologies!(
 
     #convert technology model to string for container metadata
     tech_model = metadata_string(technology_model)
-    add_constraints!(
-        container,
-        ActivePowerLimitsConstraint(),
-        ActivePowerVariable(),
-        devices,
-        tech_model,
-    )
+
     return
 end

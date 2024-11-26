@@ -45,7 +45,8 @@ function TimeMapping(
     # Validation of the dates to avoid gaps in the operational periods
 
     op_index_last_slice = length(operational_periods)
-    all_operation_slices = union(operational_periods, feasibility_periods)
+    #all_operation_slices = union(operational_periods, feasibility_periods)
+    all_operation_slices = [operational_periods; feasibility_periods]
     total_count = sum(length(x) for x in all_operation_slices)
     total_slice_count = length(operational_periods) + length(feasibility_periods)
     time_stamps = Vector{Dates.DateTime}(undef, total_count)
@@ -106,6 +107,7 @@ end
 
 get_consecutive_slices(tm::TimeMapping) = tm.operation.consecutive_slices
 get_operational_indexes(tm::TimeMapping) = tm.operation.operational_indexes
+get_feasibility_indexes(tm::TimeMapping) = tm.operation.feasibility_indexes
 get_time_stamps(tm::TimeMapping) = tm.operation.time_stamps
 get_investment_time_stamps(tm::TimeMapping) = tm.investment.time_stamps
 get_inverse_invest_mapping(tm::TimeMapping) = tm.operation.inverse_invest_mapping

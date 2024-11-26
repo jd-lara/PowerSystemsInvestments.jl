@@ -876,8 +876,6 @@ function add_constraints!(
     U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
     V <: EnergyVariable,
 } where {D <: PSIP.StorageTechnology}
-    time_mapping = get_time_mapping(container)
-    time_steps = get_investment_time_steps(time_mapping)
 
     device_names = PSIP.get_name.(devices)
     con = add_constraints_container!(
@@ -885,7 +883,6 @@ function add_constraints!(
         T(),
         D,
         device_names,
-        time_steps,
         meta=tech_model,
     )
     
@@ -895,7 +892,7 @@ function add_constraints!(
         name = PSIP.get_name(d)
         initial_state_of_charge = PSIP.get_initial_state_of_charge(d)
 
-        con[name, 1] = JuMP.@constraint(
+        con[name] = JuMP.@constraint(
             get_jump_model(container),
             storage_state[name, 1] == initial_state_of_charge
         )

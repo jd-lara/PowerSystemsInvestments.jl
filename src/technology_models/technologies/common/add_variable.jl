@@ -51,7 +51,7 @@ function add_variable!(
 } where {D <: PSIP.Technology}
     #@assert !isempty(devices)
     time_mapping = get_time_mapping(container)
-    time_steps = get_operational_time_steps(time_mapping)
+    time_steps = get_time_steps(time_mapping)
     binary = false
 
     names = [PSIP.get_name(d) for d in devices]

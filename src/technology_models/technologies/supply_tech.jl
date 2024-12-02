@@ -376,7 +376,6 @@ function add_constraints!(
     for d in devices
         name = PSIP.get_name(d)
         for op_ix in operational_indexes
-            @show op_ix
             time_slices = consecutive_slices[op_ix]
             time_series = retrieve_ops_time_series(d, op_ix, time_mapping)
             ts_data = TimeSeries.values(time_series.data)

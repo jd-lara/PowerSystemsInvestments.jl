@@ -275,8 +275,7 @@ function add_to_expression!(
     @assert !isempty(devices)
     time_mapping = get_time_mapping(container)
 
-    installed_cap =
-        get_expression(container, CumulativeCapacity(), D, tech_model)
+    installed_cap = get_expression(container, CumulativeCapacity(), D, tech_model)
     expression = get_expression(container, T(), PSIP.Portfolio)
 
     feasibility_indexes = get_feasibility_indexes(time_mapping)
@@ -315,8 +314,7 @@ function add_to_expression!(
     @assert !isempty(devices)
     time_mapping = get_time_mapping(container)
 
-    installed_cap =
-        get_expression(container, CumulativeCapacity(), D, tech_model)
+    installed_cap = get_expression(container, CumulativeCapacity(), D, tech_model)
     expression = get_expression(container, T(), PSIP.Portfolio)
 
     feasibility_indexes = get_feasibility_indexes(time_mapping)
@@ -365,8 +363,7 @@ function add_constraints!(
         meta=tech_model,
     )
 
-    installed_cap =
-        get_expression(container, CumulativeCapacity(), D, tech_model)
+    installed_cap = get_expression(container, CumulativeCapacity(), D, tech_model)
     active_power = get_variable(container, V(), D, tech_model)
     operational_indexes = get_all_indexes(time_mapping)
     consecutive_slices = get_consecutive_slices(time_mapping)
@@ -425,8 +422,7 @@ function add_constraints!(
         meta=tech_model,
     )
 
-    installed_cap =
-        get_expression(container, CumulativeCapacity(), D, tech_model)
+    installed_cap = get_expression(container, CumulativeCapacity(), D, tech_model)
     active_power = get_variable(container, V(), D, tech_model)
     operational_indexes = get_all_indexes(time_mapping)
     consecutive_slices = get_consecutive_slices(time_mapping)

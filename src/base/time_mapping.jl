@@ -108,7 +108,8 @@ end
 get_consecutive_slices(tm::TimeMapping) = tm.operation.consecutive_slices
 get_operational_indexes(tm::TimeMapping) = tm.operation.operational_indexes
 get_feasibility_indexes(tm::TimeMapping) = tm.operation.feasibility_indexes
-get_all_indexes(tm::TimeMapping) = [tm.operation.operational_indexes; tm.operation.feasibility_indexes]
+get_all_indexes(tm::TimeMapping) =
+    [tm.operation.operational_indexes; tm.operation.feasibility_indexes]
 get_time_stamps(tm::TimeMapping) = tm.operation.time_stamps
 get_investment_time_stamps(tm::TimeMapping) = tm.investment.time_stamps
 get_inverse_invest_mapping(tm::TimeMapping) = tm.operation.inverse_invest_mapping
@@ -126,7 +127,8 @@ end
 get_total_investment_period_count(tm::TimeMapping) = length(tm.investment.time_stamps)
 get_time_steps(tm::TimeMapping) = 1:get_total_period_count(tm)
 get_operational_time_steps(tm::TimeMapping) = 1:get_total_operation_period_count(tm)
-get_feasibility_time_steps(tm::TimeMapping) = (get_total_operation_period_count(tm) + 1):get_total_feasibility_period_count(tm)
+get_feasibility_time_steps(tm::TimeMapping) =
+    (get_total_operation_period_count(tm) + 1):get_total_feasibility_period_count(tm)
 # get_feasibility_time_steps(tm::TimeMapping) = 1:(get_total_feasibility_period_count(tm) - get_total_operation_period_count(tm))
 get_investment_time_steps(tm::TimeMapping) = 1:get_total_investment_period_count(tm)
 is_feasibility_empty(tm::TimeMapping) = isempty(tm.operation.feasibility_indexes)

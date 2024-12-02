@@ -108,7 +108,7 @@ function set_technology_model!(
 end
 
 function metadata_string(
-    model::TechnologyModel{T, B, C, D}
+    model::TechnologyModel{T, B, C, D},
 ) where {
     T <: PSIP.Technology,
     B <: InvestmentTechnologyFormulation,
@@ -120,5 +120,4 @@ function metadata_string(
     fes = IS.strip_module_name(D)
 
     return string(inv, ops, fes)
-
 end

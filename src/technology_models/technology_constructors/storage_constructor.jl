@@ -300,6 +300,6 @@ function construct_technologies!(
     #devices = PSIP.get_technologies(T, p)
     devices = [PSIP.get_technology(T, p, n) for n in names]
     tech_model = metadata_string(technology_model)
-    
+
     return
 end

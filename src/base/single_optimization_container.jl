@@ -974,16 +974,10 @@ function build_model!(
 
     # Only build the feasibility model if there are feasibility timesteps
     if is_feasibility_empty(get_time_mapping(container))
-        models = [
-            template.capital_model,
-            template.operation_model,
-        ]
+        models = [template.capital_model, template.operation_model]
     else
-        models = [
-            template.capital_model,
-            template.operation_model,
-            template.feasibility_model,
-        ]
+        models =
+            [template.capital_model, template.operation_model, template.feasibility_model]
     end
 
     tech_templates = collect(keys(template.technology_models))

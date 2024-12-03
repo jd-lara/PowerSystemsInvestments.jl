@@ -2,6 +2,7 @@ abstract type SparseVariableType <: ISOPT.VariableType end
 
 abstract type InvestmentVariableType <: ISOPT.VariableType end
 abstract type OperationsVariableType <: ISOPT.VariableType end
+abstract type FeasibilityVariableType <: ISOPT.VariableType end
 
 ### Investment Variables ###
 

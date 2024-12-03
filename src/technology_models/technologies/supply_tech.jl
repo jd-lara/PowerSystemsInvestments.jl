@@ -43,7 +43,7 @@ function add_variable!(
     T <: InvestmentVariableType,
     U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
     V <: IntegerInvestment,
-} where {D <: PSIP.Technology}
+} where {D <: PSIP.SupplyTechnology}
     #@assert !isempty(devices)
     time_mapping = get_time_mapping(container)
     time_steps = get_investment_time_steps(time_mapping)
@@ -211,17 +211,14 @@ function add_to_expression!(
     U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
     V <: SingleRegionBalanceModel,
 } where {D <: PSIP.SupplyTechnology}
-    #@assert !isempty(devices)
+    @assert !isempty(devices)
     time_mapping = get_time_mapping(container)
     time_steps = get_time_steps(time_mapping)
-    #binary = false
-    #var = get_variable(container, ActivePowerVariable(), D)
+
     variable = get_variable(container, ActivePowerVariable(), D, tech_model)
     expression = get_expression(container, T(), PSIP.Portfolio)
-    # expression = add_expression_container!(container, expression_type, D, time_steps)
     for d in devices, t in time_steps
         name = PSIP.get_name(d)
-        #bus_no = PNM.get_mapped_bus_number(radial_network_reduction, PSY.get_bus(d))
         _add_to_jump_expression!(
             expression["SingleRegion", t],
             variable[name, t],
@@ -244,19 +241,15 @@ function add_to_expression!(
     U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
     V <: MultiRegionBalanceModel,
 } where {D <: PSIP.SupplyTechnology}
-    #@assert !isempty(devices)
+    @assert !isempty(devices)
     time_mapping = get_time_mapping(container)
     time_steps = get_time_steps(time_mapping)
-    #binary = false
-    #var = get_variable(container, ActivePowerVariable(), D)
 
     variable = get_variable(container, ActivePowerVariable(), D, tech_model)
     expression = get_expression(container, T(), PSIP.Portfolio)
-    # expression = add_expression_container!(container, expression_type, D, time_steps)
     for d in devices, t in time_steps
         name = PSIP.get_name(d)
         region = PSIP.get_region(d)
-        #bus_no = PNM.get_mapped_bus_number(radial_network_reduction, PSY.get_bus(d))
         _add_to_jump_expression!(
             expression[region, t],
             variable[name, t],
@@ -279,25 +272,18 @@ function add_to_expression!(
     U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
     V <: SingleRegionBalanceModel,
 } where {D <: PSIP.SupplyTechnology}
-    #@assert !isempty(devices)
+    @assert !isempty(devices)
     time_mapping = get_time_mapping(container)
-    time_steps = get_time_steps(time_mapping)
 
-    #binary = false
-    #var = get_variable(container, ActivePowerVariable(), D)
-    installed_cap =
-        get_expression(container, CumulativeCapacity(), D, "ContinuousInvestment")
-    variable = get_variable(container, ActivePowerVariable(), D, tech_model)
+    installed_cap = get_expression(container, CumulativeCapacity(), D, tech_model)
     expression = get_expression(container, T(), PSIP.Portfolio)
 
-    operational_indexes = get_operational_indexes(time_mapping)
+    feasibility_indexes = get_feasibility_indexes(time_mapping)
     consecutive_slices = get_consecutive_slices(time_mapping)
     inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
-    time_stamps = get_time_stamps(time_mapping)
-    # expression = add_expression_container!(container, expression_type, D, time_steps)
     for d in devices
         name = PSIP.get_name(d)
-        for op_ix in operational_indexes
+        for op_ix in feasibility_indexes
             time_slices = consecutive_slices[op_ix]
             time_step_inv = inverse_invest_mapping[op_ix]
             for t in time_slices
@@ -309,15 +295,6 @@ function add_to_expression!(
             end
         end
     end
-    # for d in devices, t in time_steps
-    #     name = PSIP.get_name(d)
-    #     #bus_no = PNM.get_mapped_bus_number(radial_network_reduction, PSY.get_bus(d))
-    #     _add_to_jump_expression!(
-    #         expression["SingleRegion", t],
-    #         variable[name, t],
-    #         1.0, #get_variable_multiplier(U(), V, W()),
-    #     )
-    # end
 
     return
 end
@@ -334,26 +311,19 @@ function add_to_expression!(
     U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
     V <: MultiRegionBalanceModel,
 } where {D <: PSIP.SupplyTechnology}
-    #@assert !isempty(devices)
+    @assert !isempty(devices)
     time_mapping = get_time_mapping(container)
-    time_steps = get_time_steps(time_mapping)
 
-    #binary = false
-    #var = get_variable(container, ActivePowerVariable(), D)
-    installed_cap =
-        get_expression(container, CumulativeCapacity(), D, "ContinuousInvestment")
-    variable = get_variable(container, ActivePowerVariable(), D, tech_model)
+    installed_cap = get_expression(container, CumulativeCapacity(), D, tech_model)
     expression = get_expression(container, T(), PSIP.Portfolio)
 
-    operational_indexes = get_operational_indexes(time_mapping)
+    feasibility_indexes = get_feasibility_indexes(time_mapping)
     consecutive_slices = get_consecutive_slices(time_mapping)
     inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
-    time_stamps = get_time_stamps(time_mapping)
-    # expression = add_expression_container!(container, expression_type, D, time_steps)
     for d in devices
         name = PSIP.get_name(d)
         region = PSIP.get_region(d)
-        for op_ix in operational_indexes
+        for op_ix in feasibility_indexes
             time_slices = consecutive_slices[op_ix]
             time_step_inv = inverse_invest_mapping[op_ix]
             for t in time_slices
@@ -365,15 +335,7 @@ function add_to_expression!(
             end
         end
     end
-    # for d in devices, t in time_steps
-    #     name = PSIP.get_name(d)
-    #     #bus_no = PNM.get_mapped_bus_number(radial_network_reduction, PSY.get_bus(d))
-    #     _add_to_jump_expression!(
-    #         expression["SingleRegion", t],
-    #         variable[name, t],
-    #         1.0, #get_variable_multiplier(U(), V, W()),
-    #     )
-    # end
+
     return
 end
 ################### Constraints ##################
@@ -401,10 +363,9 @@ function add_constraints!(
         meta=tech_model,
     )
 
-    installed_cap =
-        get_expression(container, CumulativeCapacity(), D, "ContinuousInvestment")
+    installed_cap = get_expression(container, CumulativeCapacity(), D, tech_model)
     active_power = get_variable(container, V(), D, tech_model)
-    operational_indexes = get_operational_indexes(time_mapping)
+    operational_indexes = get_all_indexes(time_mapping)
     consecutive_slices = get_consecutive_slices(time_mapping)
     inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
     time_stamps = get_time_stamps(time_mapping)
@@ -451,7 +412,6 @@ function add_constraints!(
     time_mapping = get_time_mapping(container)
     time_steps = get_time_steps(time_mapping)
     device_names = PSIP.get_name.(devices)
-
     device_names = PSIP.get_name.(devices)
     con_ub = add_constraints_container!(
         container,
@@ -462,10 +422,9 @@ function add_constraints!(
         meta=tech_model,
     )
 
-    installed_cap =
-        get_expression(container, CumulativeCapacity(), D, "ContinuousInvestment")
+    installed_cap = get_expression(container, CumulativeCapacity(), D, tech_model)
     active_power = get_variable(container, V(), D, tech_model)
-    operational_indexes = get_operational_indexes(time_mapping)
+    operational_indexes = get_all_indexes(time_mapping)
     consecutive_slices = get_consecutive_slices(time_mapping)
     inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
 

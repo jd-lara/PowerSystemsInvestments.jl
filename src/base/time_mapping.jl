@@ -45,7 +45,8 @@ function TimeMapping(
     # Validation of the dates to avoid gaps in the operational periods
 
     op_index_last_slice = length(operational_periods)
-    all_operation_slices = union(operational_periods, feasibility_periods)
+    #all_operation_slices = union(operational_periods, feasibility_periods)
+    all_operation_slices = [operational_periods; feasibility_periods]
     total_count = sum(length(x) for x in all_operation_slices)
     total_slice_count = length(operational_periods) + length(feasibility_periods)
     time_stamps = Vector{Dates.DateTime}(undef, total_count)
@@ -104,17 +105,33 @@ function TimeMapping(
     TimeMapping(inv_periods, op_periods)
 end
 
-get_total_operation_period_count(tm::TimeMapping) = length(tm.operation.time_stamps)
-get_total_investment_period_count(tm::TimeMapping) = length(tm.investment.time_stamps)
-# TODO: use more accessors to get the problem times
-get_time_steps(tm::TimeMapping) = 1:get_total_operation_period_count(tm)
-get_investment_time_steps(tm::TimeMapping) = 1:get_total_investment_period_count(tm)
 get_consecutive_slices(tm::TimeMapping) = tm.operation.consecutive_slices
 get_operational_indexes(tm::TimeMapping) = tm.operation.operational_indexes
+get_feasibility_indexes(tm::TimeMapping) = tm.operation.feasibility_indexes
+get_all_indexes(tm::TimeMapping) =
+    [tm.operation.operational_indexes; tm.operation.feasibility_indexes]
 get_time_stamps(tm::TimeMapping) = tm.operation.time_stamps
 get_investment_time_stamps(tm::TimeMapping) = tm.investment.time_stamps
 get_inverse_invest_mapping(tm::TimeMapping) = tm.operation.inverse_invest_mapping
 get_base_date(tm::TimeMapping) = first(tm.investment.time_stamps)[1]
+get_total_period_count(tm::TimeMapping) = length(tm.operation.time_stamps)
+function get_total_operation_period_count(tm::TimeMapping)
+    consecutive_slices = get_consecutive_slices(tm)
+    operational_indexes = get_operational_indexes(tm)
+    return last(consecutive_slices[last(operational_indexes)])
+end
+function get_total_feasibility_period_count(tm::TimeMapping)
+    consecutive_slices = get_consecutive_slices(tm)
+    return last(last(consecutive_slices))
+end
+get_total_investment_period_count(tm::TimeMapping) = length(tm.investment.time_stamps)
+get_time_steps(tm::TimeMapping) = 1:get_total_period_count(tm)
+get_operational_time_steps(tm::TimeMapping) = 1:get_total_operation_period_count(tm)
+get_feasibility_time_steps(tm::TimeMapping) =
+    (get_total_operation_period_count(tm) + 1):get_total_feasibility_period_count(tm)
+# get_feasibility_time_steps(tm::TimeMapping) = 1:(get_total_feasibility_period_count(tm) - get_total_operation_period_count(tm))
+get_investment_time_steps(tm::TimeMapping) = 1:get_total_investment_period_count(tm)
+is_feasibility_empty(tm::TimeMapping) = isempty(tm.operation.feasibility_indexes)
 
 function TimeMapping(::Nothing)
     return TimeMapping(InvestmentIntervals(nothing), OperationalPeriods(nothing))

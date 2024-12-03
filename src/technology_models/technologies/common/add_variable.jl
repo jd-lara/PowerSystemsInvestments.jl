@@ -5,9 +5,9 @@ function add_variable!(
     formulation::AbstractTechnologyFormulation,
     tech_model::String,
 ) where {
-    T<:InvestmentVariableType,
-    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
-} where {D<:PSIP.Technology}
+    T <: InvestmentVariableType,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+} where {D <: PSIP.Technology}
     #@assert !isempty(devices)
     time_mapping = get_time_mapping(container)
     time_steps = get_investment_time_steps(time_mapping)
@@ -47,9 +47,9 @@ function add_variable!(
     formulation::AbstractTechnologyFormulation,
     tech_model::String,
 ) where {
-    T<:OperationsVariableType,
-    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
-} where {D<:PSIP.Technology}
+    T <: OperationsVariableType,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+} where {D <: PSIP.Technology}
     #@assert !isempty(devices)
     time_mapping = get_time_mapping(container)
     time_steps = get_time_steps(time_mapping)

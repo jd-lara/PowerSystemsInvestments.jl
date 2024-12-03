@@ -123,7 +123,7 @@ function get_timestamps(model::InvestmentModel)
     return range(start_time; length=horizon_count, step=resolution)
 end
 
-@warn "Update once portfolio has base power or we decide what to do with it"
+# TODO: "Update once portfolio has base power or we decide what to do with it"
 get_problem_base_power(model::InvestmentModel) = 100.0 #PSIP.get_base_power(model.portfolio)
 get_settings(model::InvestmentModel) = get_optimization_container(model).settings
 get_optimizer_stats(model::InvestmentModel) =
@@ -157,8 +157,8 @@ get_resolution(model::InvestmentModel) = get_resolution(get_settings(model))
 function write_results!(
     store,
     model::InvestmentModel,
-    index::Union{DecisionModelIndexType, EmulationModelIndexType},
-    update_timestamp::Dates.DateTime;
+    index::Dates.Date,
+    update_timestamp::Dates.Date;
     exports=nothing,
 )
     if exports !== nothing
@@ -183,8 +183,8 @@ end
 function write_model_dual_results!(
     store,
     model::T,
-    index::Union{DecisionModelIndexType, EmulationModelIndexType},
-    update_timestamp::Dates.DateTime,
+    index::Dates.Date,
+    update_timestamp::Dates.Date,
     export_params::Union{Dict{Symbol, Any}, Nothing},
 ) where {T <: InvestmentModel}
     container = get_optimization_container(model)
@@ -216,8 +216,8 @@ end
 function write_model_variable_results!(
     store,
     model::T,
-    index::Union{DecisionModelIndexType, EmulationModelIndexType},
-    update_timestamp::Dates.DateTime,
+    index::Dates.Date,
+    update_timestamp::Dates.Date,
     export_params::Union{Dict{Symbol, Any}, Nothing},
 ) where {T <: InvestmentModel}
     container = get_optimization_container(model)
@@ -237,7 +237,6 @@ function write_model_variable_results!(
         !should_write_resulting_value(key) && continue
         data = jump_value.(variable)
         write_result!(store, model_name, key, index, update_timestamp, data)
-
         if export_params !== nothing &&
            should_export_variable(export_params[:exports], index, model_name, key)
             horizon_count = export_params[:horizon_count]
@@ -255,8 +254,8 @@ end
 function write_model_aux_variable_results!(
     store,
     model::T,
-    index::Union{DecisionModelIndexType, EmulationModelIndexType},
-    update_timestamp::Dates.DateTime,
+    index::Dates.Date,
+    update_timestamp::Dates.Date,
     export_params::Union{Dict{Symbol, Any}, Nothing},
 ) where {T <: InvestmentModel}
     container = get_optimization_container(model)
@@ -288,8 +287,8 @@ end
 function write_model_expression_results!(
     store,
     model::T,
-    index::Union{DecisionModelIndexType, EmulationModelIndexType},
-    update_timestamp::Dates.DateTime,
+    index::Dates.Date,
+    update_timestamp::Dates.Date,
     export_params::Union{Dict{Symbol, Any}, Nothing},
 ) where {T <: InvestmentModel}
     container = get_optimization_container(model)
@@ -325,14 +324,9 @@ function write_model_expression_results!(
 end
 
 function init_model_store_params!(model::InvestmentModel)
-    @warn "Update interval once it is in Portfolios"
-    #portfolio = get_system(model)
-    #interval = PSIP.get_forecast_interval(portfolio)
-    @warn "update PSIP to get base power from attached system"
-    base_power = 100.0 #PSIP.get_base_power(portfolio)
-    port_uuid = IS.make_uuid()#IS.get_uuid(system)
+    base_power = 100.0
+    port_uuid = IS.make_uuid()
 
-    # will probably need to include time mapping object here as well
     store_params = ModelStoreParams(
         base_power,
         port_uuid,
@@ -366,7 +360,7 @@ end
 
 function build_pre_step!(model::InvestmentModel)
     TimerOutputs.@timeit BUILD_PROBLEMS_TIMER "Build pre-step" begin
-        @warn "to-do: add template validation"
+        # TODO: add template validation
         #validate_template(model)
         if !isempty(model)
             @info "OptimizationProblem status not ModelBuildStatus.EMPTY. Resetting"
@@ -413,7 +407,7 @@ function build!(
     disable_timer_outputs && TimerOutputs.disable_timer!(BUILD_PROBLEMS_TIMER)
     file_mode = "w"
 
-    @warn "remove recorders"
+    # TODO: "remove recorders"
     logger = IS.configure_logging(get_internal(model), PROBLEM_LOG_FILENAME, file_mode)
     try
         Logging.with_logger(logger) do
@@ -476,7 +470,10 @@ function solve!(
                     @warn "todo: add pre-solve model check back in"
                     #_pre_solve_model_checks(model, optimizer)
                     solve_impl!(model)
-                    current_time = get_initial_time(model)
+                    container = get_optimization_container(model)
+                    time_mapping = get_time_mapping(container)
+                    current_time = get_base_date(time_mapping)
+
                     write_results!(get_store(model), model, current_time, current_time)
                     write_optimizer_stats!(
                         get_store(model),
@@ -571,7 +568,7 @@ function _read_col_name(axes)
 end
 
 function _read_results(model::InvestmentModel, key::OptimizationContainerKey)
-    res = read_results(get_store(model), key)
+    res = first(values(read_results(get_store(model), key)))
     col_name = _read_col_name(axes(res))
     return DataFrames.DataFrame(permutedims(res.data), col_name)
 end

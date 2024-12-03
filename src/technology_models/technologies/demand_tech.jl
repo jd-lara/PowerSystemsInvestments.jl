@@ -1,4 +1,4 @@
-function get_default_time_series_names(::Type{U}) where {U<:PSIP.DemandRequirement}
+function get_default_time_series_names(::Type{U}) where {U <: PSIP.DemandRequirement}
     return "ops_peak_load"
 end
 
@@ -8,12 +8,12 @@ function get_default_attributes(
     ::Type{W},
     ::Type{X},
 ) where {
-    U<:PSIP.DemandRequirement,
-    V<:InvestmentTechnologyFormulation,
-    W<:OperationsTechnologyFormulation,
-    X<:FeasibilityTechnologyFormulation,
+    U <: PSIP.DemandRequirement,
+    V <: InvestmentTechnologyFormulation,
+    W <: OperationsTechnologyFormulation,
+    X <: FeasibilityTechnologyFormulation,
 }
-    return Dict{String,Any}()
+    return Dict{String, Any}()
 end
 
 ################### Variables ####################
@@ -30,10 +30,10 @@ function add_to_expression!(
     transport_model::TransportModel{V},
     #tech_model::String,
 ) where {
-    T<:EnergyBalance,
-    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
-    V<:SingleRegionBalanceModel,
-} where {D<:PSIP.DemandRequirement}
+    T <: EnergyBalance,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+    V <: SingleRegionBalanceModel,
+} where {D <: PSIP.DemandRequirement}
     #@assert !isempty(devices)
     time_mapping = get_time_mapping(container)
     operational_indexes = get_operational_indexes(time_mapping)
@@ -71,10 +71,10 @@ function add_to_expression!(
     transport_model::TransportModel{V},
     #tech_model::String,
 ) where {
-    T<:EnergyBalance,
-    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
-    V<:MultiRegionBalanceModel
-} where {D<:PSIP.DemandRequirement}
+    T <: EnergyBalance,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+    V <: MultiRegionBalanceModel,
+} where {D <: PSIP.DemandRequirement}
     #@assert !isempty(devices)
     time_mapping = get_time_mapping(container)
     operational_indexes = get_operational_indexes(time_mapping)
@@ -104,7 +104,6 @@ function add_to_expression!(
     return
 end
 
-
 function add_to_expression!(
     container::SingleOptimizationContainer,
     expression_type::T,
@@ -113,10 +112,10 @@ function add_to_expression!(
     transport_model::TransportModel{V},
     #tech_model::String,
 ) where {
-    T<:FeasibilitySurplus,
-    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
-    V<:SingleRegionBalanceModel,
-} where {D<:PSIP.DemandRequirement}
+    T <: FeasibilitySurplus,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+    V <: SingleRegionBalanceModel,
+} where {D <: PSIP.DemandRequirement}
     #@assert !isempty(devices)
     time_mapping = get_time_mapping(container)
     operational_indexes = get_operational_indexes(time_mapping)
@@ -154,10 +153,10 @@ function add_to_expression!(
     transport_model::TransportModel{V},
     #tech_model::String,
 ) where {
-    T<:FeasibilitySurplus,
-    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
-    V<:MultiRegionBalanceModel
-} where {D<:PSIP.DemandRequirement}
+    T <: FeasibilitySurplus,
+    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
+    V <: MultiRegionBalanceModel,
+} where {D <: PSIP.DemandRequirement}
     #@assert !isempty(devices)
     time_mapping = get_time_mapping(container)
     operational_indexes = get_operational_indexes(time_mapping)
@@ -186,5 +185,3 @@ function add_to_expression!(
     end
     return
 end
-
-

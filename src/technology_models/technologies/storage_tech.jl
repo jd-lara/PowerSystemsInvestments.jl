@@ -741,6 +741,97 @@ function add_constraints!(
     end
 end
 
+function add_constraints!(
+    container::SingleOptimizationContainer,
+    ::T,
+    ::V,
+    devices::U,
+    tech_model::String,
+) where {
+    T<:InitialStateOfChargeConstraint,
+    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
+    V<:EnergyVariable,
+} where {D<:PSIP.StorageTechnology}
+
+    device_names = PSIP.get_name.(devices)
+    time_mapping = get_time_mapping(container)
+    con = add_constraints_container!(
+        container,
+        T(),
+        D,
+        device_names,
+        meta=tech_model,
+    )
+
+    storage_state = get_variable(container, V(), D, tech_model)
+    installed_cap = get_expression(container, CumulativeEnergyCapacity(), D, "ContinuousInvestment")
+
+    operational_indexes = get_operational_indexes(time_mapping)
+    consecutive_slices = get_consecutive_slices(time_mapping)
+    inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
+
+    for d in devices
+        name = PSIP.get_name(d)
+        for op_ix in operational_indexes
+            time_slices = consecutive_slices[op_ix]
+            time_step_inv = inverse_invest_mapping[op_ix]
+            target = PSIP.get_initial_state_of_charge(d) * installed_cap[name, time_step_inv]
+            initial_state_of_charge = PSIP.get_initial_state_of_charge(d)
+
+            con[name] = JuMP.@constraint(
+                get_jump_model(container),
+                storage_state[name, time_slices[1]] == target
+            )
+        end
+    end
+
+end
+
+function add_constraints!(
+    container::SingleOptimizationContainer,
+    ::T,
+    ::V,
+    devices::U,
+    tech_model::String,
+) where {
+    T<:StateofChargeTargetConstraint,
+    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
+    V<:EnergyVariable,
+} where {D<:PSIP.StorageTechnology}
+    device_names = PSIP.get_name.(devices)
+    time_mapping = get_time_mapping(container)
+    time_steps = get_time_steps(time_mapping)
+    con = add_constraints_container!(
+        container,
+        T(),
+        D,
+        device_names,
+        meta=tech_model,
+    )
+
+    storage_state = get_variable(container, V(), D, tech_model)
+    installed_cap = get_expression(container, CumulativeEnergyCapacity(), D, "ContinuousInvestment")
+
+    operational_indexes = get_operational_indexes(time_mapping)
+    consecutive_slices = get_consecutive_slices(time_mapping)
+    inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
+
+    for d in devices
+        name = PSIP.get_name(d)
+        for op_ix in operational_indexes
+            time_slices = consecutive_slices[op_ix]
+            time_step_inv = inverse_invest_mapping[op_ix]
+            target = PSIP.get_initial_state_of_charge(d) * installed_cap[name, time_step_inv]
+            con[name] = JuMP.@constraint(
+                get_jump_model(container),
+                storage_state[name, time_slices[end]] == target
+            )
+        end
+    end
+
+    return
+end
+
 ########################### Objective Function Calls#############################################
 # These functions are custom implementations of the cost data. In the file objective_functions.jl there are default implementations. Define these only if needed.
 

@@ -10,9 +10,8 @@ function OptimizationProblemResults(model::InvestmentModel)
     end
 
     # TODO: Look at how timesteps are extracted from the model
-    # timestamps = get_timestamps(model)
+    timestamps = get_time_stamps(model.internal.container.time_mapping)
     optimizer_stats = IS.Optimization.to_dataframe(get_optimizer_stats(model))
-
     aux_variable_values =
         Dict(x => read_aux_variable(model, x) for x in list_aux_variable_keys(model))
     variable_values = Dict(x => read_variable(model, x) for x in list_variable_keys(model))
@@ -22,13 +21,12 @@ function OptimizationProblemResults(model::InvestmentModel)
     expression_values =
         Dict(x => read_expression(model, x) for x in list_expression_keys(model))
 
-    sys = get_system(model)
-
+    portfolio = get_portfolio(model)
     return OptimizationProblemResults(
         get_problem_base_power(model),
         timestamps,
-        sys,
-        IS.get_uuid(sys),
+        portfolio,
+        IS.get_uuid(portfolio),
         aux_variable_values,
         variable_values,
         dual_values,
@@ -41,3 +39,17 @@ function OptimizationProblemResults(model::InvestmentModel)
         mkpath(joinpath(get_output_dir(model), "results")),
     )
 end
+
+list_variable_keys(res::OptimizationProblemResults) = keys(res.variable_values)
+list_aux_variable_keys(res::OptimizationProblemResults) = keys(res.aux_variable_values)
+list_dual_keys(res::OptimizationProblemResults) = keys(res.dual_values)
+list_expression_keys(res::OptimizationProblemResults) = keys(res.expression_values)
+
+list_variable_names(res::OptimizationProblemResults) =
+    encode_keys_as_strings(list_variable_keys(res))
+list_aux_variable_names(res::OptimizationProblemResults) =
+    encode_keys_as_strings(list_aux_variable_keys(res))
+list_dual_names(res::OptimizationProblemResults) =
+    encode_keys_as_strings(list_dual_keys(res))
+list_expression_names(res::OptimizationProblemResults) =
+    encode_keys_as_strings(list_expression_keys(res))

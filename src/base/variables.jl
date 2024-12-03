@@ -2,6 +2,7 @@ abstract type SparseVariableType <: ISOPT.VariableType end
 
 abstract type InvestmentVariableType <: ISOPT.VariableType end
 abstract type OperationsVariableType <: ISOPT.VariableType end
+abstract type FeasibilityVariableType <: ISOPT.VariableType end
 
 ### Investment Variables ###
 
@@ -41,3 +42,11 @@ struct ActiveOutPowerVariable <: OperationsVariableType end
 energy stored in Storage technology at a timepoint
 """
 struct EnergyVariable <: OperationsVariableType end
+
+is_operation_entry(::Type{<:ISOPT.VariableType}) = error()
+is_operation_entry(::Type{<:OperationsVariableType}) = true
+is_operation_entry(::Type{<:InvestmentVariableType}) = false
+
+is_investment_entry(::Type{<:ISOPT.VariableType}) = error()
+is_investment_entry(::Type{<:OperationsVariableType}) = false
+is_investment_entry(::Type{<:InvestmentVariableType}) = true

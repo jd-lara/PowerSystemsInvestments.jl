@@ -13,6 +13,14 @@ function test_data()
     set_units_base_system!(sys, "NATURAL_UNITS")
 
     ###################
+    ### Zones ###
+    ###################
+
+    z1 = Zone(name="Zone_1", id=1)
+
+    z2 = Zone(name="Zone_2", id=2)
+
+    ###################
     ### Time Series ###
     ###################
 
@@ -40,8 +48,8 @@ function test_data()
     ####################
 
     thermals = collect(get_components(ThermalStandard, sys))
-    var_cost = get_variable.((get_operation_cost.((thermals))))
-    op_cost = get_proportional_term.(get_value_curve.(var_cost))
+    var_cost = PSY.get_variable.((get_operation_cost.((thermals))))
+    op_cost = PSY.get_proportional_term.(get_value_curve.(var_cost))
 
     cheap_th_ixs = 2:4
     exp_th_ixs = [1, 5]
@@ -70,37 +78,70 @@ function test_data()
     t_th = SupplyTechnology{ThermalStandard}(;
         base_power=1.0, # Natural Units
         prime_mover_type=PrimeMovers.ST,
-        capital_cost=LinearCurve(coal_igcc_capex * 1000.0),
+        capital_costs=LinearCurve(coal_igcc_capex * 1000.0),
         minimum_required_capacity=0.0,
-        gen_ID="1",
+        id=1,
         available=true,
         name="cheap_thermal",
-        initial_capacity=initial_cap_cheap,
+        initial_capacity=0.0,#initial_cap_cheap,
         fuel=ThermalFuels.COAL,
         power_systems_type="ThermalStandard",
-        variable_cost=LinearCurve(cheap_th_var_cost),
         balancing_topology="Region",
-        operations_cost=LinearCurve(0.0),
+        operation_costs=ThermalGenerationCost(
+            variable=CostCurve(LinearCurve(cheap_th_var_cost)),
+            fixed=0.0,
+            start_up=0.0,
+            shut_down=0.0,
+        ),#LinearCurve(0.0),
         maximum_capacity=1e8,
-        capacity_factor=0.92,
+        outage_factor=0.92,
+        region=z1,
+    )
+
+    t_th_mid = SupplyTechnology{ThermalStandard}(;
+        base_power=1.0, # Natural Units
+        prime_mover_type=PrimeMovers.ST,
+        capital_costs=LinearCurve(coal_igcc_capex * 1000.0),
+        minimum_required_capacity=0.0,
+        id=1,
+        available=true,
+        name="mid_thermal",
+        initial_capacity=0.0,#initial_cap_cheap,
+        fuel=ThermalFuels.COAL,
+        power_systems_type="ThermalStandard",
+        balancing_topology="Region",
+        operation_costs=ThermalGenerationCost(
+            variable=CostCurve(LinearCurve(cheap_th_var_cost)),
+            fixed=0.0,
+            start_up=0.0,
+            shut_down=0.0,
+        ),#LinearCurve(0.0),
+        maximum_capacity=1e8,
+        outage_factor=0.92,
+        region=z2,
     )
 
     t_th_exp = SupplyTechnology{ThermalStandard}(;
         base_power=1.0, # Natural Units
         prime_mover_type=PrimeMovers.ST,
-        capital_cost=LinearCurve(coal_new_capex * 1000.0),
+        capital_costs=LinearCurve(coal_new_capex * 1000.0),
         minimum_required_capacity=0.0,
-        gen_ID="1",
+        id=2,
         available=true,
         name="expensive_thermal",
-        initial_capacity=initial_cap_exp,
+        initial_capacity=0.0, #initial_cap_exp,
         fuel=ThermalFuels.COAL,
         power_systems_type="ThermalStandard",
-        variable_cost=LinearCurve(exp_th_var_cost),
         balancing_topology="Region",
-        operations_cost=LinearCurve(0.0),
+        operation_costs=ThermalGenerationCost(
+            variable=CostCurve(LinearCurve(exp_th_var_cost)),
+            fixed=0.0,
+            start_up=0.0,
+            shut_down=0.0,
+        ),
         maximum_capacity=1e8,
-        capacity_factor=0.95,
+        outage_factor=0.95,
+        region=z1,
     )
 
     #####################
@@ -110,7 +151,7 @@ function test_data()
     renewables = collect(get_components(RenewableDispatch, sys))
     wind_op_costs =
         get_proportional_term.(
-            get_value_curve.(get_variable.((get_operation_cost.((renewables)))))
+            get_value_curve.(PSY.get_variable.((get_operation_cost.((renewables)))))
         )
     wind_op_cost = mean(wind_op_costs)
     initial_cap_wind = sum(get_max_active_power.(renewables))
@@ -156,19 +197,44 @@ function test_data()
     t_re = SupplyTechnology{RenewableDispatch}(;
         base_power=1.0, # Natural Units
         prime_mover_type=PrimeMovers.WT,
-        capital_cost=LinearCurve(wind_capex * 1000.0), # to $/MW
+        capital_costs=LinearCurve(wind_capex * 1000.0), # to $/MW
         minimum_required_capacity=0.0,
-        gen_ID="1",
+        id=3,
         available=true,
         name="wind",
-        initial_capacity=initial_cap_wind,
+        initial_capacity=0.0, #initial_cap_wind,
         fuel=ThermalFuels.OTHER,
         power_systems_type="RenewableDispatch",
-        variable_cost=LinearCurve(0.0),
         balancing_topology="Region",
-        operations_cost=LinearCurve(wind_op_cost),
+        operation_costs=ThermalGenerationCost(
+            variable=CostCurve(LinearCurve(0.0)),
+            fixed=wind_op_cost,
+            start_up=0.0,
+            shut_down=0.0,
+        ),
         maximum_capacity=1e8,
-        capacity_factor=0.92,
+        region=z2,
+        outage_factor=0.92,
+    )
+
+    ########################
+    ######## Storage #######
+    ########################
+
+    t_stor = StorageTechnology{EnergyReservoirStorage}(;
+        name="test_storage",
+        base_power=1.0,
+        id=1,
+        storage_tech=StorageTech.LIB,
+        power_systems_type="EnergyReservoirStorage",
+        balancing_topology="Region",
+        prime_mover_type=PrimeMovers.BT,
+        available=true,
+        capital_costs_power=LinearCurve(100000),
+        capital_costs_energy=LinearCurve(100000),
+        om_costs_energy=StorageCost(fixed=0.0),
+        om_costs_power=StorageCost(fixed=0.0),
+        region=z2,
     )
 
     #####################
@@ -187,68 +253,84 @@ function test_data()
                 if date == DateTime("2024-01-01T00:00:00")
                     ts_load_2030[ix] += val * get_max_active_power(load)
                 else
-                    ts_load_2035[ix] += val * get_max_active_power(load)
+                    ts_load_2035[ix] += val * get_max_active_power(load) * 1.5
                 end
             end
         end
     end
-    ts_load_2030 = ts_load_2030 / peak_load
-    ts_load_2035 = ts_load_2035 / peak_load
 
-    ts_demand = SingleTimeSeries(
-        "ops_peak_load",
-        TimeArray(tstamp_ops, vcat(ts_load_2030, ts_load_2035)),
-        scaling_factor_multiplier=get_peak_load,
-    )
-    ts_demand_2030 = SingleTimeSeries(
-        "ops_peak_load",
-        TimeArray(tstamp_2030_ops, ts_load_2030),
-        scaling_factor_multiplier=get_peak_load,
-    )
-    ts_demand_2035 = SingleTimeSeries(
-        "ops_peak_load",
-        TimeArray(tstamp_2035_ops, ts_load_2035),
-        scaling_factor_multiplier=get_peak_load,
-    )
+    # Data added in MW
+    ts_demand_2030 =
+        SingleTimeSeries("ops_peak_load", TimeArray(tstamp_2030_ops, ts_load_2030))
+    ts_demand_2035 =
+        SingleTimeSeries("ops_peak_load", TimeArray(tstamp_2035_ops, ts_load_2035))
 
-    t_demand = DemandRequirement{PowerLoad}(
-        load_growth=0.05,
-        name="demand",
+    t_demand1 = DemandRequirement{PowerLoad}(
+        #load_growth=0.05,
+        name="demand1",
         available=true,
-        power_systems_type="PowercLoad",
-        region="1",
-        peak_load=peak_load,
+        power_systems_type="PowerLoad",
+        region=z1,
+        #peak_load=peak_load,
     )
 
+    t_demand2 = DemandRequirement{PowerLoad}(
+        #load_growth=0.05,
+        name="demand2",
+        available=true,
+        power_systems_type="PowerLoad",
+        region=z2,
+        #peak_load=peak_load,
+    )
+
+    ####################
+    ##### Transmission #####
     #####################
+
+    line = ACTransportTechnology{ACBranch}(
+        name="test_branch",
+        start_region=z1,
+        end_region=z2,
+        existing_line_capacity=100,
+        maximum_new_capacity=900,
+        line_loss=0.05,
+        capital_cost=LinearCurve(5000.0),
+        available=true,
+        power_systems_type="TransportTechnology",
+        network_id=1,
+        base_power=1.0,
+    )
+
+    ####################
     ##### Portfolio #####
     #####################
 
     discount_rate = 0.07
-    p_5bus = Portfolio(discount_rate)
+    inflation_rate = 0.05
+    base_year = 2025
+    p_5bus = Portfolio(discount_rate, inflation_rate, base_year)
 
+    PSIP.add_region!(p_5bus, z1)
+    PSIP.add_region!(p_5bus, z2)
     PSIP.add_technology!(p_5bus, t_th)
     PSIP.add_technology!(p_5bus, t_re)
     PSIP.add_technology!(p_5bus, t_th_exp)
-    PSIP.add_technology!(p_5bus, t_demand)
+    PSIP.add_technology!(p_5bus, t_demand1)
+    PSIP.add_technology!(p_5bus, t_demand2)
+    PSIP.add_technology!(p_5bus, t_stor)
+    PSIP.add_technology!(p_5bus, t_th_mid)
+    PSIP.add_technology!(p_5bus, line)
 
     PSIP.add_time_series!(p_5bus, t_th, ts_th_cheap_inv_capex)
     PSIP.add_time_series!(p_5bus, t_th_exp, ts_th_exp_inv_capex)
 
-    IS.add_time_series!(p_5bus.data, t_re, ts_wind_2030; year="2030")
-    IS.add_time_series!(p_5bus.data, t_re, ts_wind_2035; year="2035")
+    IS.add_time_series!(p_5bus.data, t_re, ts_wind_2030; year="2030", rep_day=1)
+    IS.add_time_series!(p_5bus.data, t_re, ts_wind_2035; year="2035", rep_day=2)
     PSIP.add_time_series!(p_5bus, t_re, ts_wind_inv_capex)
 
-    IS.add_time_series!(p_5bus.data, t_demand, ts_demand_2030; year="2030")
-    IS.add_time_series!(p_5bus.data, t_demand, ts_demand_2035; year="2035")
-    t = IS.get_time_series(
-        IS.SingleTimeSeries,
-        t_re,
-        "ops_variable_cap_factor";
-        year="2035",
-    )
-    load = IS.get_time_series(IS.SingleTimeSeries, t_demand, "ops_peak_load"; year="2030")
-    #InfrastructureSystems.serialize(p_5bus)
-
-    return p_5bus
+    IS.add_time_series!(p_5bus.data, t_demand1, ts_demand_2030; year="2030", rep_day=1)
+    IS.add_time_series!(p_5bus.data, t_demand1, ts_demand_2035; year="2035", rep_day=2)
+    IS.add_time_series!(p_5bus.data, t_demand2, ts_demand_2030; year="2030", rep_day=1)
+    IS.add_time_series!(p_5bus.data, t_demand2, ts_demand_2035; year="2035", rep_day=2)
+    return p_5bus, [tstamp_2030_ops, tstamp_2035_ops]
 end

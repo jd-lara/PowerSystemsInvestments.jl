@@ -1,9 +1,10 @@
 abstract type InvestmentExpressionType <: ISOPT.ExpressionType end
 abstract type OperationsExpressionType <: ISOPT.ExpressionType end
+abstract type FeasibilityExpressionType <: ISOPT.ExpressionType end
 
 struct SupplyTotal <: OperationsExpressionType end
 struct DemandTotal <: OperationsExpressionType end
-struct ActivePowerBalance <: OperationsExpressionType end
+struct EnergyBalance <: OperationsExpressionType end
 
 struct CumulativeCapacity <: InvestmentExpressionType end
 
@@ -16,3 +17,5 @@ struct FixedOperationModelCost <: InvestmentExpressionType end
 struct TotalCapitalCost <: ISOPT.ExpressionType end
 
 struct VariableOMCost <: OperationsExpressionType end
+
+struct FeasibilitySurplus <: FeasibilityExpressionType end

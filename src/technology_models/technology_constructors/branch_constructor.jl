@@ -4,13 +4,13 @@ function construct_technologies!(
     names::Vector{String},
     ::ArgumentConstructStage,
     ::CapitalCostModel,
-    technology_model::TechnologyModel{T, B, C, D},
+    technology_model::TechnologyModel{T,B,C,D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: GenericTransportTechnology,
-    B <: ContinuousInvestment,
-    C <: BasicDispatch,
-    D <: FeasibilityTechnologyFormulation,
+    T<:GenericTransportTechnology,
+    B<:ContinuousInvestment,
+    C<:BasicDispatch,
+    D<:FeasibilityTechnologyFormulation,
 }
 
     #TODO: Port get_available_component functions from PSY
@@ -19,7 +19,7 @@ function construct_technologies!(
     #PSIP.get_technologies(T, p)
 
     #convert technology model to string for container metadata
-    tech_model = IS.strip_module_name(B)
+    tech_model = metadata_string(technology_model)
 
     # BuildCapacity variable
     add_variable!(container, BuildCapacity(), devices, B(), tech_model)
@@ -36,13 +36,13 @@ function construct_technologies!(
     names::Vector{String},
     ::ArgumentConstructStage,
     ::OperationCostModel,
-    technology_model::TechnologyModel{T, B, C, D},
+    technology_model::TechnologyModel{T,B,C,D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: GenericTransportTechnology,
-    B <: ContinuousInvestment,
-    C <: BasicDispatch,
-    D <: FeasibilityTechnologyFormulation,
+    T<:GenericTransportTechnology,
+    B<:ContinuousInvestment,
+    C<:BasicDispatch,
+    D<:FeasibilityTechnologyFormulation,
 }
 
     #TODO: Port get_available_component functions from PSY
@@ -50,7 +50,7 @@ function construct_technologies!(
     devices = [PSIP.get_technology(T, p, n) for n in names]
 
     #convert technology model to string for container metadata
-    tech_model = IS.strip_module_name(B)
+    tech_model = metadata_string(technology_model)
 
     #ActivePowerVariable
     add_variable!(container, ActivePowerVariable(), devices, C(), tech_model)
@@ -74,21 +74,28 @@ function construct_technologies!(
     names::Vector{String},
     ::ArgumentConstructStage,
     ::FeasibilityModel,
-    technology_model::TechnologyModel{T, B, C, D},
+    technology_model::TechnologyModel{T,B,C,D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: GenericTransportTechnology,
-    B <: ContinuousInvestment,
-    C <: BasicDispatch,
-    D <: FeasibilityTechnologyFormulation,
+    T<:GenericTransportTechnology,
+    B<:ContinuousInvestment,
+    C<:BasicDispatch,
+    D<:FeasibilityTechnologyFormulation,
 }
 
     #TODO: Port get_available_component functions from PSY
     devices = [PSIP.get_technology(T, p, n) for n in names]
 
     #convert technology model to string for container metadata
-    tech_model = IS.strip_module_name(B)
-
+    tech_model = metadata_string(technology_model)
+    add_to_expression!(
+        container,
+        CapacitySurplus(),
+        devices,
+        D(),
+        tech_model,
+        transport_model,
+    )
     return
 end
 
@@ -98,19 +105,19 @@ function construct_technologies!(
     names::Vector{String},
     ::ModelConstructStage,
     model::CapitalCostModel,
-    technology_model::TechnologyModel{T, B, C, D},
+    technology_model::TechnologyModel{T,B,C,D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: GenericTransportTechnology,
-    B <: ContinuousInvestment,
-    C <: BasicDispatch,
-    D <: FeasibilityTechnologyFormulation,
+    T<:GenericTransportTechnology,
+    B<:ContinuousInvestment,
+    C<:BasicDispatch,
+    D<:FeasibilityTechnologyFormulation,
 }
     #devices = PSIP.get_technologies(T, p)
     devices = [PSIP.get_technology(T, p, n) for n in names]
 
     #convert technology model to string for container metadata
-    tech_model = IS.strip_module_name(B)
+    tech_model = metadata_string(technology_model)
 
     # Capital Component of objective function
     objective_function!(container, devices, B(), tech_model)
@@ -135,19 +142,19 @@ function construct_technologies!(
     names::Vector{String},
     ::ModelConstructStage,
     model::OperationCostModel,
-    technology_model::TechnologyModel{T, B, C, D},
+    technology_model::TechnologyModel{T,B,C,D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: GenericTransportTechnology,
-    B <: ContinuousInvestment,
-    C <: BasicDispatch,
-    D <: FeasibilityTechnologyFormulation,
+    T<:GenericTransportTechnology,
+    B<:ContinuousInvestment,
+    C<:BasicDispatch,
+    D<:FeasibilityTechnologyFormulation,
 }
     #devices = PSIP.get_technologies(T, p)
     devices = [PSIP.get_technology(T, p, n) for n in names]
 
     #convert technology model to string for container metadata
-    tech_model = IS.strip_module_name(B)
+    tech_model = metadata_string(technology_model)
 
     # Dispatch constraint
     add_constraints!(
@@ -167,20 +174,20 @@ function construct_technologies!(
     names::Vector{String},
     ::ModelConstructStage,
     model::FeasibilityModel,
-    technology_model::TechnologyModel{T, B, C, D},
+    technology_model::TechnologyModel{T,B,C,D},
     transport_model::TransportModel{<:AbstractTransportAggregation},
 ) where {
-    T <: GenericTransportTechnology,
-    B <: ContinuousInvestment,
-    C <: BasicDispatch,
-    D <: FeasibilityTechnologyFormulation,
+    T<:GenericTransportTechnology,
+    B<:ContinuousInvestment,
+    C<:BasicDispatch,
+    D<:FeasibilityTechnologyFormulation,
 }
     #devices = PSIP.get_technologies(T, p)
     devices = [PSIP.get_technology(T, p, n) for n in names]
 
     #convert technology model to string for container metadata
     #tech_model = IS.strip_module_name(typeof(technology_model))
-    tech_model = IS.strip_module_name(B)
+    tech_model = metadata_string(technology_model)
 
     return
 end

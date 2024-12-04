@@ -328,7 +328,7 @@ function add_to_expression!(
 } where {D<:PSIP.StorageTechnology}
     @assert !isempty(devices)
     time_mapping = get_time_mapping(container)
-    time_steps = get_time_steps(time_mapping)
+    time_steps = get_operational_time_steps(time_mapping)
     #binary = false
     #var = get_variable(container, ActivePowerVariable(), D)
 
@@ -364,7 +364,7 @@ function add_to_expression!(
 } where {D<:PSIP.StorageTechnology}
     @assert !isempty(devices)
     time_mapping = get_time_mapping(container)
-    time_steps = get_time_steps(time_mapping)
+    time_steps = get_operational_time_steps(time_mapping)
     #binary = false
     #var = get_variable(container, ActivePowerVariable(), D)
 
@@ -401,7 +401,7 @@ function add_to_expression!(
 } where {D<:PSIP.StorageTechnology}
     @assert !isempty(devices)
     time_mapping = get_time_mapping(container)
-    time_steps = get_time_steps(time_mapping)
+    time_steps = get_operational_time_steps(time_mapping)
     #binary = false
     #var = get_variable(container, ActivePowerVariable(), D)
 
@@ -431,14 +431,14 @@ function add_to_expression!(
     tech_model::String,
     transport_model::TransportModel{W},
 ) where {
-    T<:FeasibilitySurplus,
+    T<:CapacitySurplus,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:ActiveOutPowerVariable,
     W<:SingleRegionBalanceModel,
 } where {D<:PSIP.StorageTechnology}
     @assert !isempty(devices)
     time_mapping = get_time_mapping(container)
-    time_steps = get_time_steps(container)
+    time_steps = get_feasibility_time_steps(container)
     #binary = false
     #var = get_variable(container, ActivePowerVariable(), D)
 
@@ -467,14 +467,14 @@ function add_to_expression!(
     tech_model::String,
     transport_model::TransportModel{W},
 ) where {
-    T<:FeasibilitySurplus,
+    T<:CapacitySurplus,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:ActiveInPowerVariable,
     W<:SingleRegionBalanceModel,
 } where {D<:PSIP.StorageTechnology}
     @assert !isempty(devices)
     time_mapping = get_time_mapping(container)
-    time_steps = get_time_steps(time_mapping)
+    time_steps = get_feasibility_time_steps(time_mapping)
     #binary = false
     #var = get_variable(container, ActivePowerVariable(), D)
 
@@ -503,14 +503,14 @@ function add_to_expression!(
     tech_model::String,
     transport_model::TransportModel{W},
 ) where {
-    T<:FeasibilitySurplus,
+    T<:CapacitySurplus,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:ActiveOutPowerVariable,
     W<:MultiRegionBalanceModel,
 } where {D<:PSIP.StorageTechnology}
     @assert !isempty(devices)
     time_mapping = get_time_mapping(container)
-    time_steps = get_time_steps(time_mapping)
+    time_steps = get_feasibility_time_steps(time_mapping)
     #binary = false
     #var = get_variable(container, ActivePowerVariable(), D)
 
@@ -540,14 +540,14 @@ function add_to_expression!(
     tech_model::String,
     transport_model::TransportModel{W},
 ) where {
-    T<:FeasibilitySurplus,
+    T<:CapacitySurplus,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:ActiveInPowerVariable,
     W<:MultiRegionBalanceModel,
 } where {D<:PSIP.StorageTechnology}
     @assert !isempty(devices)
     time_mapping = get_time_mapping(container)
-    time_steps = get_time_steps(time_mapping)
+    time_steps = get_feasibility_time_steps(time_mapping)
     #binary = false
     #var = get_variable(container, ActivePowerVariable(), D)
 
@@ -627,7 +627,7 @@ function add_constraints!(
 
     installed_cap = get_expression(container, CumulativePowerCapacity(), D, tech_model)
     active_power = get_variable(container, V(), D, tech_model)
-    operational_indexes = get_operational_indexes(time_mapping)
+    operational_indexes = get_all_indexes(time_mapping)
     consecutive_slices = get_consecutive_slices(time_mapping)
     inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
 
@@ -671,7 +671,7 @@ function add_constraints!(
 
     installed_cap = get_expression(container, CumulativePowerCapacity(), D, tech_model)
     active_power = get_variable(container, V(), D, tech_model)
-    operational_indexes = get_operational_indexes(time_mapping)
+    operational_indexes = get_all_indexes(time_mapping)
     consecutive_slices = get_consecutive_slices(time_mapping)
     inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
     for d in devices
@@ -714,7 +714,7 @@ function add_constraints!(
 
     installed_cap = get_expression(container, CumulativeEnergyCapacity(), D, tech_model)
     energy_var = get_variable(container, V(), D, tech_model)
-    operational_indexes = get_operational_indexes(time_mapping)
+    operational_indexes = get_all_indexes(time_mapping)
     consecutive_slices = get_consecutive_slices(time_mapping)
     inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
 
@@ -745,7 +745,7 @@ function add_constraints!(
     V<:EnergyVariable,
 } where {D<:PSIP.StorageTechnology}
     time_mapping = get_time_mapping(container)
-    time_steps = get_time_steps(time_mapping)
+    time_steps = get_time_steps(time_mapping) #TODO: fix get_time_Steps
     device_names = PSIP.get_name.(devices)
     con_ub = add_constraints_container!(
         container,
@@ -876,12 +876,11 @@ function add_constraints!(
         device_names,
         meta=tech_model,
     )
-
     storage_state = get_variable(container, V(), D, tech_model)
-    installed_cap = get_expression(container, CumulativeEnergyCapacity(), D, "ContinuousInvestment")
+    installed_cap = get_expression(container, CumulativeEnergyCapacity(), D, tech_model)
 
     operational_indexes = get_operational_indexes(time_mapping)
-    consecutive_slices = get_consecutive_slices(time_mapping)
+    consecutive_slices = get_all_indexes(time_mapping)
     inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
 
     for d in devices
@@ -924,9 +923,9 @@ function add_constraints!(
     )
 
     storage_state = get_variable(container, V(), D, tech_model)
-    installed_cap = get_expression(container, CumulativeEnergyCapacity(), D, "ContinuousInvestment")
+    installed_cap = get_expression(container, CumulativeEnergyCapacity(), D, tech_model)
 
-    operational_indexes = get_operational_indexes(time_mapping)
+    operational_indexes = get_all_indexes(time_mapping)
     consecutive_slices = get_consecutive_slices(time_mapping)
     inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
 

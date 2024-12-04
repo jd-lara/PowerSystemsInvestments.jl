@@ -1,4 +1,4 @@
-function get_default_time_series_names(::Type{U}) where {U <: PSIP.DemandRequirement}
+function get_default_time_series_names(::Type{U}) where {U<:PSIP.DemandRequirement}
     return "ops_peak_load"
 end
 
@@ -8,12 +8,12 @@ function get_default_attributes(
     ::Type{W},
     ::Type{X},
 ) where {
-    U <: PSIP.DemandRequirement,
-    V <: InvestmentTechnologyFormulation,
-    W <: OperationsTechnologyFormulation,
-    X <: FeasibilityTechnologyFormulation,
+    U<:PSIP.DemandRequirement,
+    V<:InvestmentTechnologyFormulation,
+    W<:OperationsTechnologyFormulation,
+    X<:FeasibilityTechnologyFormulation,
 }
-    return Dict{String, Any}()
+    return Dict{String,Any}()
 end
 
 ################### Variables ####################
@@ -27,13 +27,14 @@ function add_to_expression!(
     expression_type::T,
     devices::U,
     formulation::BasicDispatch,
+    tech_model::String,
     transport_model::TransportModel{V},
     #tech_model::String,
 ) where {
-    T <: EnergyBalance,
-    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
-    V <: SingleRegionBalanceModel,
-} where {D <: PSIP.DemandRequirement}
+    T<:EnergyBalance,
+    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
+    V<:SingleRegionBalanceModel,
+} where {D<:PSIP.DemandRequirement}
     #@assert !isempty(devices)
     time_mapping = get_time_mapping(container)
     operational_indexes = get_operational_indexes(time_mapping)
@@ -68,13 +69,14 @@ function add_to_expression!(
     expression_type::T,
     devices::U,
     formulation::BasicDispatch,
+    tech_model::String,
     transport_model::TransportModel{V},
     #tech_model::String,
 ) where {
-    T <: EnergyBalance,
-    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
-    V <: MultiRegionBalanceModel,
-} where {D <: PSIP.DemandRequirement}
+    T<:EnergyBalance,
+    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
+    V<:MultiRegionBalanceModel,
+} where {D<:PSIP.DemandRequirement}
     #@assert !isempty(devices)
     time_mapping = get_time_mapping(container)
     operational_indexes = get_operational_indexes(time_mapping)
@@ -109,13 +111,14 @@ function add_to_expression!(
     expression_type::T,
     devices::U,
     formulation::BasicDispatchFeasibility,
+    tech_model::String,
     transport_model::TransportModel{V},
     #tech_model::String,
 ) where {
-    T <: FeasibilitySurplus,
-    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
-    V <: SingleRegionBalanceModel,
-} where {D <: PSIP.DemandRequirement}
+    T<:CapacitySurplus,
+    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
+    V<:SingleRegionBalanceModel,
+} where {D<:PSIP.DemandRequirement}
     #@assert !isempty(devices)
     time_mapping = get_time_mapping(container)
     operational_indexes = get_operational_indexes(time_mapping)
@@ -150,16 +153,18 @@ function add_to_expression!(
     expression_type::T,
     devices::U,
     formulation::BasicDispatchFeasibility,
+    tech_model::String,
     transport_model::TransportModel{V},
     #tech_model::String,
 ) where {
-    T <: FeasibilitySurplus,
-    U <: Union{D, Vector{D}, IS.FlattenIteratorWrapper{D}},
-    V <: MultiRegionBalanceModel,
-} where {D <: PSIP.DemandRequirement}
+    T<:CapacitySurplus,
+    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
+    V<:MultiRegionBalanceModel,
+} where {D<:PSIP.DemandRequirement}
     #@assert !isempty(devices)
     time_mapping = get_time_mapping(container)
     operational_indexes = get_operational_indexes(time_mapping)
+    feasibility_indexes = get_feasibility_indexes(time_mapping)
     consecutive_slices = get_consecutive_slices(time_mapping)
     expression = get_expression(container, T(), PSIP.Portfolio)
     time_stamps = get_time_stamps(time_mapping)
@@ -167,7 +172,7 @@ function add_to_expression!(
     for d in devices
         region = PSIP.get_region(d)
         for op_ix in operational_indexes
-            time_slices = consecutive_slices[op_ix]
+            time_slices = consecutive_slices[feasibility_indexes[op_ix]]
             time_series = retrieve_ops_time_series(d, op_ix, time_mapping)
             # Load Data is in MW
             ts_data = TimeSeries.values(time_series.data)

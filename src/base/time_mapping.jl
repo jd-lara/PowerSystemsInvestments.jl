@@ -1,14 +1,14 @@
 struct InvestmentIntervals
-    time_stamps::Vector{NTuple{2, Dates.Date}}
-    map_to_operational_slices::Dict{Int, Vector{Int}}
-    map_to_feasibility_slices::Dict{Int, Vector{Int}}
+    time_stamps::Vector{NTuple{2,Dates.Date}}
+    map_to_operational_slices::Dict{Int,Vector{Int}}
+    map_to_feasibility_slices::Dict{Int,Vector{Int}}
 end
 
 function InvestmentIntervals(::Nothing)
     return InvestmentIntervals(
-        Vector{NTuple{2, Dates.Date}}(),
-        Dict{Int, Vector{Int}}(),
-        Dict{Int, Vector{Int}}(),
+        Vector{NTuple{2,Dates.Date}}(),
+        Dict{Int,Vector{Int}}(),
+        Dict{Int,Vector{Int}}(),
     )
 end
 
@@ -36,7 +36,7 @@ struct TimeMapping
 end
 
 function TimeMapping(
-    investment_intervals::Vector{NTuple{2, Dates.Date}},
+    investment_intervals::Vector{NTuple{2,Dates.Date}},
     operational_periods::Vector{Vector{Dates.DateTime}},
     feasibility_periods::Vector{Vector{Dates.DateTime}},
 )
@@ -53,9 +53,9 @@ function TimeMapping(
     consecutive_slices = Vector{Vector{Int}}(undef, total_slice_count)
     inverse_invest_mapping = Vector{Int}(undef, total_slice_count)
     map_to_operational_slices =
-        Dict{Int, Vector{Int}}(i => Vector{Int}() for i in 1:length(investment_intervals))
+        Dict{Int,Vector{Int}}(i => Vector{Int}() for i in 1:length(investment_intervals))
     map_to_feasibility_slices =
-        Dict{Int, Vector{Int}}(i => Vector{Int}() for i in 1:length(investment_intervals))
+        Dict{Int,Vector{Int}}(i => Vector{Int}() for i in 1:length(investment_intervals))
 
     ix = 1
     slice_running_count = 0
@@ -128,7 +128,7 @@ get_total_investment_period_count(tm::TimeMapping) = length(tm.investment.time_s
 get_time_steps(tm::TimeMapping) = 1:get_total_period_count(tm)
 get_operational_time_steps(tm::TimeMapping) = 1:get_total_operation_period_count(tm)
 get_feasibility_time_steps(tm::TimeMapping) =
-    (get_total_operation_period_count(tm) + 1):get_total_feasibility_period_count(tm)
+    (get_total_operation_period_count(tm)+1):get_total_feasibility_period_count(tm)
 # get_feasibility_time_steps(tm::TimeMapping) = 1:(get_total_feasibility_period_count(tm) - get_total_operation_period_count(tm))
 get_investment_time_steps(tm::TimeMapping) = 1:get_total_investment_period_count(tm)
 is_feasibility_empty(tm::TimeMapping) = isempty(tm.operation.feasibility_indexes)

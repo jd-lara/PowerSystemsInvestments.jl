@@ -3,14 +3,14 @@
 const DecisionModelIndexType = Dates.DateTime
 const EmulationModelIndexType = Int
 
-mutable struct InvestmentModel{S <: SolutionAlgorithm}
+mutable struct InvestmentModel{S<:SolutionAlgorithm}
     name::Symbol
     template::InvestmentModelTemplate
     portfolio::PSIP.Portfolio
-    internal::Union{Nothing, ISOPT.ModelInternal}
+    internal::Union{Nothing,ISOPT.ModelInternal}
     simulation_info::SimulationInfo
     store::InvestmentModelStore
-    ext::Dict{String, Any}
+    ext::Dict{String,Any}
 end
 
 function InvestmentModel(
@@ -18,7 +18,7 @@ function InvestmentModel(
     M::Type{SingleInstanceSolve},
     portfolio::PSIP.Portfolio,
     settings::Settings,
-    jump_model::Union{Nothing, JuMP.Model}=nothing;
+    jump_model::Union{Nothing,JuMP.Model}=nothing;
 )
     internal = ISOPT.ModelInternal(SingleOptimizationContainer(settings, jump_model))
 
@@ -29,7 +29,7 @@ function InvestmentModel(
         internal,
         SimulationInfo(),
         InvestmentModelStore(),
-        Dict{String, Any}(),
+        Dict{String,Any}(),
     )
     return model
 end
@@ -38,7 +38,7 @@ function InvestmentModel(
     template::AbstractInvestmentModelTemplate,
     alg::Type{SingleInstanceSolve},
     portfolio::PSIP.Portfolio,
-    jump_model::Union{Nothing, JuMP.Model}=nothing;
+    jump_model::Union{Nothing,JuMP.Model}=nothing;
     name=nothing,
     optimizer=nothing,
     horizon=UNSET_HORIZON,
@@ -162,7 +162,7 @@ function write_results!(
     exports=nothing,
 )
     if exports !== nothing
-        export_params = Dict{Symbol, Any}(
+        export_params = Dict{Symbol,Any}(
             :exports => exports,
             :exports_path => joinpath(exports.path, string(get_name(model))),
             :file_type => get_export_file_type(exports),
@@ -185,8 +185,8 @@ function write_model_dual_results!(
     model::T,
     index::Dates.Date,
     update_timestamp::Dates.Date,
-    export_params::Union{Dict{Symbol, Any}, Nothing},
-) where {T <: InvestmentModel}
+    export_params::Union{Dict{Symbol,Any},Nothing},
+) where {T<:InvestmentModel}
     container = get_optimization_container(model)
     model_name = get_name(model)
     if export_params !== nothing
@@ -218,8 +218,8 @@ function write_model_variable_results!(
     model::T,
     index::Dates.Date,
     update_timestamp::Dates.Date,
-    export_params::Union{Dict{Symbol, Any}, Nothing},
-) where {T <: InvestmentModel}
+    export_params::Union{Dict{Symbol,Any},Nothing},
+) where {T<:InvestmentModel}
     container = get_optimization_container(model)
     model_name = get_name(model)
     if export_params !== nothing
@@ -256,8 +256,8 @@ function write_model_aux_variable_results!(
     model::T,
     index::Dates.Date,
     update_timestamp::Dates.Date,
-    export_params::Union{Dict{Symbol, Any}, Nothing},
-) where {T <: InvestmentModel}
+    export_params::Union{Dict{Symbol,Any},Nothing},
+) where {T<:InvestmentModel}
     container = get_optimization_container(model)
     model_name = get_name(model)
     if export_params !== nothing
@@ -289,8 +289,8 @@ function write_model_expression_results!(
     model::T,
     index::Dates.Date,
     update_timestamp::Dates.Date,
-    export_params::Union{Dict{Symbol, Any}, Nothing},
-) where {T <: InvestmentModel}
+    export_params::Union{Dict{Symbol,Any},Nothing},
+) where {T<:InvestmentModel}
     container = get_optimization_container(model)
     model_name = get_name(model)
     if export_params !== nothing
@@ -305,6 +305,7 @@ function write_model_expression_results!(
     end
 
     for (key, expression) in expressions
+
         !should_write_resulting_value(key) && continue
         data = jump_value.(expression)
         write_result!(store, model_name, key, index, update_timestamp, data)

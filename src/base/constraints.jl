@@ -32,3 +32,5 @@ struct InitialStateOfChargeConstraint <: ISOPT.ConstraintType end
 struct SingleRegionBalanceFeasibilityConstraint <: ISOPT.ConstraintType end
 
 struct MultiRegionBalanceFeasibilityConstraint <: ISOPT.ConstraintType end
+
+struct EUEEstimateConstraint <: ISOPT.ConstraintType end

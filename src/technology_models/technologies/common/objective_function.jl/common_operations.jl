@@ -5,10 +5,10 @@
 function add_variable_cost!(
     container::SingleOptimizationContainer,
     ::U,
-    devices::Union{Vector{T}, IS.FlattenIteratorWrapper{T}},
+    devices::Union{Vector{T},IS.FlattenIteratorWrapper{T}},
     ::V,
     tech_model::String,
-) where {T <: PSIP.SupplyTechnology, U <: ActivePowerVariable, V <: BasicDispatch}
+) where {T<:PSIP.SupplyTechnology,U<:ActivePowerVariable,V<:OperationsTechnologyFormulation}
     for d in devices
         op_cost_data = PSIP.get_operation_costs(d)
         _add_cost_to_objective!(container, U(), d, op_cost_data, V(), tech_model)
@@ -44,7 +44,7 @@ function _add_proportional_term!(
     linear_term::Float64,
     time_period::Int,
     tech_model::String,
-) where {T <: ActivePowerVariable, U <: PSIP.Technology}
+) where {T<:ActivePowerVariable,U<:PSIP.Technology}
     technology_name = PSIP.get_name(technology)
     #@debug "Linear Variable Cost" _group = LOG_GROUP_COST_FUNCTIONS component_name
     variable = get_variable(container, T(), U, tech_model)[technology_name, time_period]
@@ -78,7 +78,7 @@ function _add_proportional_term!(
     linear_term::Float64,
     time_period::Int,
     tech_model::String,
-) where {T <: ActiveInPowerVariable, U <: PSIP.Technology}
+) where {T<:ActiveInPowerVariable,U<:PSIP.Technology}
     technology_name = PSIP.get_name(technology)
     #@debug "Linear Variable Cost" _group = LOG_GROUP_COST_FUNCTIONS component_name
     variable = get_variable(container, T(), U, tech_model)[technology_name, time_period]
@@ -94,7 +94,7 @@ function _add_proportional_term!(
     linear_term::Float64,
     time_period::Int,
     tech_model::String,
-) where {T <: ActiveOutPowerVariable, U <: PSIP.Technology}
+) where {T<:ActiveOutPowerVariable,U<:PSIP.Technology}
     technology_name = PSIP.get_name(technology)
     #@debug "Linear Variable Cost" _group = LOG_GROUP_COST_FUNCTIONS component_name
     variable = get_variable(container, T(), U, tech_model)[technology_name, time_period]
@@ -106,13 +106,13 @@ end
 function add_variable_cost!(
     container::SingleOptimizationContainer,
     ::U,
-    devices::Union{Vector{T}, IS.FlattenIteratorWrapper{T}},
+    devices::Union{Vector{T},IS.FlattenIteratorWrapper{T}},
     ::V,
     tech_model::String,
 ) where {
-    T <: PSIP.StorageTechnology,
-    U <: Union{ActiveOutPowerVariable, ActiveInPowerVariable},
-    V <: BasicDispatch,
+    T<:PSIP.StorageTechnology,
+    U<:Union{ActiveOutPowerVariable,ActiveInPowerVariable},
+    V<:OperationsTechnologyFormulation,
 }
     for d in devices
         op_cost_data = PSIP.get_om_costs_power(d)

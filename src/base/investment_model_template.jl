@@ -13,7 +13,7 @@ mutable struct InvestmentModelTemplate <: AbstractInvestmentModelTemplate
         operation_model::OperationCostModel,
         feasibility_model::FeasibilityModel,
         transport_model::TransportModel{T},
-    ) where {T <: AbstractTransportAggregation}
+    ) where {T<:AbstractTransportAggregation}
         new(
             capital_model,
             operation_model,
@@ -33,7 +33,7 @@ function Base.isempty(template::InvestmentModelTemplate)
     end
 end
 
-InvestmentModelTemplate(::Type{T}) where {T <: AbstractTransportAggregation} =
+InvestmentModelTemplate(::Type{T}) where {T<:AbstractTransportAggregation} =
     InvestmentModelTemplate(TransportModel(T))
 InvestmentModelTemplate() = InvestmentModelTemplate(SingleRegionPowerModel)
 
@@ -108,12 +108,12 @@ function set_technology_model!(
 end
 
 function metadata_string(
-    model::TechnologyModel{T, B, C, D},
+    model::TechnologyModel{T,B,C,D},
 ) where {
-    T <: PSIP.Technology,
-    B <: InvestmentTechnologyFormulation,
-    C <: BasicDispatch,
-    D <: FeasibilityTechnologyFormulation,
+    T<:PSIP.Technology,
+    B<:InvestmentTechnologyFormulation,
+    C<:OperationsTechnologyFormulation,
+    D<:FeasibilityTechnologyFormulation,
 }
     inv = IS.strip_module_name(B)
     ops = IS.strip_module_name(C)

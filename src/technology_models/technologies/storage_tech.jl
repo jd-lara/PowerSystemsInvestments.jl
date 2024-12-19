@@ -281,7 +281,7 @@ function add_to_expression!(
     expression_type::T,
     var::V,
     devices::U,
-    formulation::BasicDispatch,
+    formulation::X,
     tech_model::String,
     transport_model::TransportModel{W},
 ) where {
@@ -289,6 +289,7 @@ function add_to_expression!(
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:ActiveOutPowerVariable,
     W<:SingleRegionBalanceModel,
+    X<:OperationsTechnologyFormulation
 } where {D<:PSIP.StorageTechnology}
     @assert !isempty(devices)
     time_mapping = get_time_mapping(container)
@@ -317,7 +318,7 @@ function add_to_expression!(
     expression_type::T,
     var::V,
     devices::U,
-    formulation::BasicDispatch,
+    formulation::X,
     tech_model::String,
     transport_model::TransportModel{W},
 ) where {
@@ -325,6 +326,7 @@ function add_to_expression!(
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:ActiveInPowerVariable,
     W<:SingleRegionBalanceModel,
+    X<:OperationsTechnologyFormulation
 } where {D<:PSIP.StorageTechnology}
     @assert !isempty(devices)
     time_mapping = get_time_mapping(container)
@@ -353,7 +355,7 @@ function add_to_expression!(
     expression_type::T,
     var::V,
     devices::U,
-    formulation::BasicDispatch,
+    formulation::X,
     tech_model::String,
     transport_model::TransportModel{W},
 ) where {
@@ -361,6 +363,7 @@ function add_to_expression!(
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:ActiveOutPowerVariable,
     W<:MultiRegionBalanceModel,
+    X<:OperationsTechnologyFormulation
 } where {D<:PSIP.StorageTechnology}
     @assert !isempty(devices)
     time_mapping = get_time_mapping(container)
@@ -390,7 +393,7 @@ function add_to_expression!(
     expression_type::T,
     var::V,
     devices::U,
-    formulation::BasicDispatch,
+    formulation::X,
     tech_model::String,
     transport_model::TransportModel{W},
 ) where {
@@ -398,6 +401,7 @@ function add_to_expression!(
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:ActiveInPowerVariable,
     W<:MultiRegionBalanceModel,
+    X<:OperationsTechnologyFormulation
 } where {D<:PSIP.StorageTechnology}
     @assert !isempty(devices)
     time_mapping = get_time_mapping(container)
@@ -746,6 +750,8 @@ function add_constraints!(
 } where {D<:PSIP.StorageTechnology}
     time_mapping = get_time_mapping(container)
     time_steps = get_time_steps(time_mapping) #TODO: fix get_time_Steps
+    time_steps_op = get_operational_time_steps(time_mapping)
+    time_steps_feas = get_feasibility_time_steps(time_mapping)
     device_names = PSIP.get_name.(devices)
     con_ub = add_constraints_container!(
         container,
@@ -759,22 +765,65 @@ function add_constraints!(
     charge = get_variable(container, ActiveInPowerVariable(), D, tech_model)
     discharge = get_variable(container, ActiveOutPowerVariable(), D, tech_model)
     storage_state = get_variable(container, V(), D, tech_model)
+    installed_cap = get_expression(container, CumulativeEnergyCapacity(), D, tech_model)
 
-    for d in devices, t in time_steps
+    operational_indexes = get_operational_indexes(time_mapping)
+    feasibility_indexes = get_feasibility_indexes(time_mapping)
+    consecutive_slices = get_all_indexes(time_mapping)
+    inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
+
+    for d in devices
         name = PSIP.get_name(d)
-        if t == 1
-            con_ub[name, t] = JuMP.@constraint(
-                get_jump_model(container),
-                storage_state[name, t] == charge[name, t] - discharge[name, t]
-            )
-        else
-            con_ub[name, t] = JuMP.@constraint(
-                get_jump_model(container),
-                storage_state[name, t] ==
-                storage_state[name, t-1] + charge[name, t] - discharge[name, t]
-            )
+        for (t_op, t_feas) in zip(time_steps_op, time_steps_feas)
+            # time_slices_op = consecutive_slices[op_ix]
+            # time_slices_feas = consecutive_slices[feas_ix]
+            # print(time_steps_op, "slice", time_slices_op)
+            time_step_inv = inverse_invest_mapping[1]
+            initial_state = PSIP.get_initial_state_of_charge(d) * installed_cap[name, time_step_inv]
+            # for (t_op, t_feas) in zip(time_slices_op, time_slices_feas)
+            if t_op == 1
+                con_ub[name, t_op] = JuMP.@constraint(
+                    get_jump_model(container),
+                    storage_state[name, t_op] == initial_state + charge[name, t_op] - discharge[name, t_op]
+                )
+                con_ub[name, t_feas] = JuMP.@constraint(
+                    get_jump_model(container),
+                    storage_state[name, t_feas] == initial_state + charge[name, t_feas] - discharge[name, t_feas]
+                )
+            else
+                con_ub[name, t_op] = JuMP.@constraint(
+                    get_jump_model(container),
+                    storage_state[name, t_op] ==
+                    storage_state[name, t_op-1] + charge[name, t_op] - discharge[name, t_op]
+                )
+                con_ub[name, t_feas] = JuMP.@constraint(
+                    get_jump_model(container),
+                    storage_state[name, t_feas] ==
+                    storage_state[name, t_feas-1] + charge[name, t_feas] - discharge[name, t_feas]
+                )
+            end
+
         end
     end
+
+    # for d in devices, t in time_steps
+    #     name = PSIP.get_name(d)
+
+    #     time_slices = consecutive_slices[op_ix]
+
+    #     if t == 1
+    #         con_ub[name, t] = JuMP.@constraint(
+    #             get_jump_model(container),
+    #             storage_state[name, t] == PSIP.charge[name, t] - discharge[name, t]
+    #         )
+    #     else
+    #         con_ub[name, t] = JuMP.@constraint(
+    #             get_jump_model(container),
+    #             storage_state[name, t] ==
+    #             storage_state[name, t-1] + charge[name, t] - discharge[name, t]
+    #         )
+    #     end
+    # end
 end
 
 # Maximum cumulative capacity
@@ -907,6 +956,122 @@ function add_constraints!(
     devices::U,
     tech_model::String,
 ) where {
+    T<:SparseChrononConstraint,
+    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
+    V<:EnergyVariable,
+} where {D<:PSIP.StorageTechnology}
+    device_names = PSIP.get_name.(devices)
+    time_mapping = get_time_mapping(container)
+    time_steps = get_time_steps(time_mapping)
+    storage_state = get_variable(container, V(), D, tech_model)
+    installed_cap = get_expression(container, CumulativeEnergyCapacity(), D, tech_model)
+    charge = get_variable(container, ActiveInPowerVariable(), D, tech_model)
+    discharge = get_variable(container, ActiveOutPowerVariable(), D, tech_model)
+    # net_change = get_experssion(container, NetSOCChange(), D, tech_model)
+    operational_indexes = get_operational_indexes(time_mapping)
+    feasibility_indexes = get_feasibility_indexes(time_mapping)
+    all_indexes = get_all_indexes(time_mapping)
+    consecutive_slices = get_consecutive_slices(time_mapping)
+    inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
+
+    for d in devices
+        name = PSIP.get_name(d)
+        pras_mapping = PSIP.get_ext(d)["pras_tm"]
+        num_partition = length(pras_mapping)
+        net_change = JuMP.@variable(get_jump_model(container), [1:all_indexes[end]], base_name = "stor_ΔE[$(name)]")
+        net_change_low = JuMP.@variable(get_jump_model(container), [1:all_indexes[end]], base_name = "stor_ΔE_low[$(name)]")
+        net_change_high = JuMP.@variable(get_jump_model(container), [1:all_indexes[end]], base_name = "stor_ΔE_high[$(name)]")
+        initial_state = JuMP.@variable(get_jump_model(container), [1:num_partition], base_name = "inital_state[$(name)]")
+        initial_state_feas = JuMP.@variable(get_jump_model(container), [1:num_partition], base_name = "inital_state_feas[$(name)]")
+        for (op_ix, feas_ix) in zip(operational_indexes, feasibility_indexes)
+            time_slices_op = consecutive_slices[op_ix]
+            time_slices_feas = consecutive_slices[feas_ix]
+            JuMP.@constraint(get_jump_model(container), [t in time_slices_op], sum(charge[name, 1:t]) - sum(discharge[name, 1:t]) <= net_change_high[op_ix])
+            JuMP.@constraint(get_jump_model(container), [t in time_slices_op], sum(charge[name, 1:t]) - sum(discharge[name, 1:t]) >= net_change_low[op_ix])
+            JuMP.@constraint(get_jump_model(container), sum(charge[name, time_slices_op]) - sum(discharge[name, time_slices_op]) == net_change[op_ix])
+            JuMP.@constraint(get_jump_model(container), [t in time_slices_feas], sum(charge[name, 1:t]) - sum(discharge[name, 1:t]) <= net_change_high[feas_ix])
+            JuMP.@constraint(get_jump_model(container), [t in time_slices_feas], sum(charge[name, 1:t]) - sum(discharge[name, 1:t]) >= net_change_low[feas_ix])
+            JuMP.@constraint(get_jump_model(container), sum(charge[name, time_slices_feas]) - sum(discharge[name, time_slices_feas]) == net_change[feas_ix])
+        end
+        for p_idx = 1:num_partition
+            partition = pras_mapping[p_idx]
+            op_ix = partition[1]
+            feas_ix = op_ix + operational_indexes[end]
+            nofdays = partition[2]
+            # time_slices_op = consecutive_slices[op_ix]
+            # time_slices_feas = consecutive_slices[feas_ix]
+            time_step_inv = inverse_invest_mapping[op_ix]
+            if p_idx == 1
+                JuMP.@constraint(
+                    get_jump_model(container),
+                    initial_state[p_idx] == PSIP.get_initial_state_of_charge(d) * installed_cap[name, time_step_inv])
+                JuMP.@constraint(
+                    get_jump_model(container),
+                    initial_state_feas[p_idx] == PSIP.get_initial_state_of_charge(d) * installed_cap[name, time_step_inv])
+            elseif p_idx > 1 && p_idx < num_partition
+
+                # partition_prev = pras_mapping[p_idx-1]
+                # # op_ix_prev = partition_prev[1]
+                # # feas_ix_prev = op_ix_prev
+                # time_slices_prev = consecutive_slices[op_ix_prev]
+                JuMP.@constraint(
+                    get_jump_model(container),
+                    initial_state[p_idx] == initial_state[p_idx-1] + nofdays * net_change[op_ix])
+                JuMP.@constraint(
+                    get_jump_model(container),
+                    initial_state_feas[p_idx] == initial_state_feas[p_idx-1] + nofdays * net_change[feas_ix])
+            else
+                JuMP.@constraint(
+                    get_jump_model(container),
+                    initial_state[p_idx] == initial_state[p_idx-1] + nofdays * net_change[op_ix])
+                JuMP.@constraint(
+                    get_jump_model(container),
+                    initial_state_feas[p_idx] == initial_state_feas[p_idx-1] + nofdays * net_change[feas_ix])
+                JuMP.@constraint(
+                    get_jump_model(container),
+                    initial_state[p_idx] + nofdays * net_change[op_ix] == PSIP.get_initial_state_of_charge(d) * installed_cap[name, time_step_inv])
+                JuMP.@constraint(
+                    get_jump_model(container),
+                    initial_state_feas[p_idx] + nofdays * initial_state_feas[feas_ix] == installed_cap[name, time_step_inv])
+            end
+            JuMP.@constraint(
+                get_jump_model(container),
+                initial_state[p_idx] + net_change_low[op_ix] >= 0.0)
+            JuMP.@constraint(
+                get_jump_model(container),
+                initial_state[p_idx] + net_change_high[op_ix] <= installed_cap[name, time_step_inv])
+            JuMP.@constraint(
+                get_jump_model(container),
+                initial_state[p_idx] + net_change_low[op_ix] + (nofdays - 1) * net_change[op_ix] >= 0.0)
+            JuMP.@constraint(
+                get_jump_model(container),
+                initial_state[p_idx] + net_change_high[op_ix] + (nofdays - 1) * net_change[op_ix] <= installed_cap[name, time_step_inv])
+            JuMP.@constraint(
+                get_jump_model(container),
+                initial_state_feas[p_idx] + net_change_low[feas_ix] >= 0.0)
+            JuMP.@constraint(
+                get_jump_model(container),
+                initial_state_feas[p_idx] + net_change_high[feas_ix] <= installed_cap[name, time_step_inv])
+            JuMP.@constraint(
+                get_jump_model(container),
+                initial_state_feas[p_idx] + net_change_low[feas_ix] + (nofdays - 1) * net_change[feas_ix] >= 0.0)
+            JuMP.@constraint(
+                get_jump_model(container),
+                initial_state_feas[p_idx] + net_change_high[feas_ix] + (nofdays - 1) * net_change[feas_ix] <= installed_cap[name, time_step_inv])
+        end
+    end
+
+    return
+end
+
+
+function add_constraints!(
+    container::SingleOptimizationContainer,
+    ::T,
+    ::V,
+    devices::U,
+    tech_model::String,
+) where {
     T<:StateofChargeTargetConstraint,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:EnergyVariable,
@@ -921,7 +1086,6 @@ function add_constraints!(
         device_names,
         meta=tech_model,
     )
-
     storage_state = get_variable(container, V(), D, tech_model)
     installed_cap = get_expression(container, CumulativeEnergyCapacity(), D, tech_model)
 
@@ -945,6 +1109,7 @@ function add_constraints!(
     return
 end
 
+
 ########################### Objective Function Calls#############################################
 # These functions are custom implementations of the cost data. In the file objective_functions.jl there are default implementations. Define these only if needed.
 
@@ -952,7 +1117,7 @@ function objective_function!(
     container::SingleOptimizationContainer,
     devices::Union{Vector{T},IS.FlattenIteratorWrapper{T}},
     #DeviceModel{T, U},
-    formulation::BasicDispatch, #Type{<:PM.AbstractPowerModel},
+    formulation::OperationsTechnologyFormulation, #Type{<:PM.AbstractPowerModel},
     tech_model::String,
 ) where {T<:PSIP.StorageTechnology}#, U <: ActivePowerVariable}
     add_variable_cost!(

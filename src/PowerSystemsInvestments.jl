@@ -33,6 +33,7 @@ export IntegerInvestment
 ### Operation Formulations ###
 export BasicDispatch
 export BasicDispatchFeasibility
+export SparseChrononDispatch
 
 ### Transport Formulations ###
 export SingleRegionBalanceModel

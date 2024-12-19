@@ -69,7 +69,6 @@ function _add_cost_to_objective!(
     cost_component = PSY.get_function_data(value_curve)
     proportional_term = PSY.get_proportional_term(cost_component)
     @debug "Cost is assumed to be in natural units: \$/MWh"
-    # TODO: multiplier
     multiplier = PSIP.get_unit_size_energy(technology) #objective_function_multiplier(T(), U())
     _add_linearcurve_cost!(
         container,
@@ -93,8 +92,7 @@ function _add_cost_to_objective!(
     cost_component = PSY.get_function_data(value_curve)
     proportional_term = PSY.get_proportional_term(cost_component)
     @debug "Cost is assumed to be in natural units: \$/MWh"
-    # TODO: multiplier
-    multiplier = PSIP.get_unit_size_power(technology) #objective_function_multiplier(T(), U())
+    multiplier = PSIP.get_unit_size_power(technology) 
     _add_linearcurve_cost!(
         container,
         T(),

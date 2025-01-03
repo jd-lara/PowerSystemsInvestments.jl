@@ -352,7 +352,6 @@ function add_to_expression!(
                     )
                 end
             else
-                println(d, op_ix)
                 time_series = retrieve_ops_time_series(d, op_ix, time_mapping)
                 ts_data = TimeSeries.values(time_series.data)
                 for (ix, t) in enumerate(time_slices)

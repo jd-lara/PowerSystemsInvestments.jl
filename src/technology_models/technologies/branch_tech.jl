@@ -182,7 +182,7 @@ function add_constraints!(
     devices::U,
     tech_model::String,
 ) where {
-    T<:ActivePowerLimitsConstraint,
+    T<:ActivePowerLimitsConstraintUB,
     U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
     V<:ActivePowerVariable,
 } where {D<:GenericTransportTechnology}
@@ -199,6 +199,7 @@ function add_constraints!(
         time_steps,
         meta=tech_model,
     )
+
 
     installed_cap = get_expression(container, CumulativeCapacity(), D, tech_model)
     active_power = get_variable(container, V(), D, tech_model)
@@ -221,6 +222,55 @@ function add_constraints!(
     end
     return
 end
+
+function add_constraints!(
+    container::SingleOptimizationContainer,
+    ::T,
+    ::V,
+    devices::U,
+    tech_model::String,
+) where {
+    T<:ActivePowerLimitsConstraintLB,
+    U<:Union{D,Vector{D},IS.FlattenIteratorWrapper{D}},
+    V<:ActivePowerVariable,
+} where {D<:GenericTransportTechnology}
+    time_mapping = get_time_mapping(container)
+    time_steps = get_time_steps(time_mapping)
+    # Hard Code Mapping #
+
+    device_names = PSIP.get_name.(devices)
+    con_lb = add_constraints_container!(
+        container,
+        T(),
+        D,
+        device_names,
+        time_steps,
+        meta=tech_model,
+    )
+
+
+    installed_cap = get_expression(container, CumulativeCapacity(), D, tech_model)
+    active_power = get_variable(container, V(), D, tech_model)
+    operational_indexes = get_all_indexes(time_mapping)
+    consecutive_slices = get_consecutive_slices(time_mapping)
+    inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
+    time_stamps = get_time_stamps(time_mapping)
+    for d in devices
+        name = PSIP.get_name(d)
+        for op_ix in operational_indexes
+            time_slices = consecutive_slices[op_ix]
+            time_step_inv = inverse_invest_mapping[op_ix]
+            for t in time_slices
+                con_lb[name, t] = JuMP.@constraint(
+                    get_jump_model(container),
+                    active_power[name, t] >= -installed_cap[name, time_step_inv]
+                )
+            end
+        end
+    end
+    return
+end
+
 
 # Maximum cumulative capacity
 function add_constraints!(

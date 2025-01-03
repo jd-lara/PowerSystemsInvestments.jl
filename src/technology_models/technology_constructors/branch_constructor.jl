@@ -159,7 +159,14 @@ function construct_technologies!(
     # Dispatch constraint
     add_constraints!(
         container,
-        ActivePowerLimitsConstraint(),
+        ActivePowerLimitsConstraintUB(),
+        ActivePowerVariable(),
+        devices,
+        tech_model,
+    )
+    add_constraints!(
+        container,
+        ActivePowerLimitsConstraintLB(),
         ActivePowerVariable(),
         devices,
         tech_model,

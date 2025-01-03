@@ -17,6 +17,10 @@ struct ActivePowerVariableLimitsConstraint <: ISOPT.ConstraintType end
 
 struct ActivePowerLimitsConstraint <: ISOPT.ConstraintType end
 
+struct ActivePowerLimitsConstraintUB <: ISOPT.ConstraintType end
+
+struct ActivePowerLimitsConstraintLB <: ISOPT.ConstraintType end
+
 struct OutputActivePowerVariableLimitsConstraint <: ISOPT.ConstraintType end
 
 struct InputActivePowerVariableLimitsConstraint <: ISOPT.ConstraintType end

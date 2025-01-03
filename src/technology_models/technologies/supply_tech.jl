@@ -332,20 +332,36 @@ function add_to_expression!(
     expression = get_expression(container, T(), PSIP.Portfolio)
 
     feasibility_indexes = get_feasibility_indexes(time_mapping)
+    operational_indexes = get_operational_indexes(time_mapping)
     consecutive_slices = get_consecutive_slices(time_mapping)
     inverse_invest_mapping = get_inverse_invest_mapping(time_mapping)
     for d in devices
         name = PSIP.get_name(d)
         region = PSIP.get_region(d)
-        for op_ix in feasibility_indexes
-            time_slices = consecutive_slices[op_ix]
-            time_step_inv = inverse_invest_mapping[op_ix]
-            for t in time_slices
-                _add_to_jump_expression!(
-                    expression[region, t],
-                    installed_cap[name, time_step_inv],
-                    1.0, #get_variable_multiplier(U(), V, W()),
-                )
+        power_systems_type = PSIP.get_power_systems_type(d)
+        for (op_ix, feas_ix) in zip(operational_indexes, feasibility_indexes)
+            time_slices = consecutive_slices[feas_ix]
+            time_step_inv = inverse_invest_mapping[feas_ix]
+
+            if power_systems_type == "ThermalStandard"
+                for t in time_slices
+                    _add_to_jump_expression!(
+                        expression[region, t],
+                        installed_cap[name, time_step_inv],
+                        1.0, #get_variable_multiplier(U(), V, W()),
+                    )
+                end
+            else
+                println(d, op_ix)
+                time_series = retrieve_ops_time_series(d, op_ix, time_mapping)
+                ts_data = TimeSeries.values(time_series.data)
+                for (ix, t) in enumerate(time_slices)
+                    _add_to_jump_expression!(
+                        expression[region, t],
+                        ts_data[ix] * installed_cap[name, time_step_inv],
+                        1.0, #get_variable_multiplier(U(), V, W()),
+                    )
+                end
             end
         end
     end

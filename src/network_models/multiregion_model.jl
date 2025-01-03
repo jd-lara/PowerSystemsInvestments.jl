@@ -28,7 +28,7 @@ function add_constraints!(
     regions = PSIP.get_regions(PSIP.Zone, port)
     expressions = get_expression(container, CapacitySurplus(), U)
     constraint = add_constraints_container!(container, T(), U, regions, feas_time_steps)
-    eue = JuMP.@variable(get_jump_model(container), [1:length(regions), 1:length(feas_time_steps)], lower_bound = 0)
+    eue = JuMP.@variable(get_jump_model(container), [1:length(regions), 1:length(feas_time_steps)], lower_bound = 0, base_name = "eue")
     # eue_estimate_con = add_constraints_container!(container, EUEEstimateConstraint(), U, regions, time_steps)
     for (op_t, feas_t) in zip(op_time_steps, feas_time_steps), (r_idx, r) in enumerate(regions)
         slope = PSIP.get_ext(r)["slope"]

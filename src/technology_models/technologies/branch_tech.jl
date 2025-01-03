@@ -3,7 +3,7 @@ get_variable_upper_bound(::BuildCapacity, d::GenericTransportTechnology, ::Inves
 get_variable_lower_bound(::BuildCapacity, d::GenericTransportTechnology, ::InvestmentTechnologyFormulation) = 0.0
 get_variable_binary(::BuildCapacity, d::GenericTransportTechnology, ::ContinuousInvestment) = false
 
-get_variable_lower_bound(::ActivePowerVariable, d::GenericTransportTechnology, ::OperationsTechnologyFormulation) = 0.0
+get_variable_lower_bound(::ActivePowerVariable, d::GenericTransportTechnology, ::OperationsTechnologyFormulation) = nothing
 get_variable_upper_bound(::ActivePowerVariable, d::GenericTransportTechnology, ::OperationsTechnologyFormulation) = nothing
 
 get_variable_multiplier(::ActivePowerVariable, ::Type{GenericTransportTechnology}) = 1.0

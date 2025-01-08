@@ -25,4 +25,8 @@ struct EnergyBalanceConstraint <: ISOPT.ConstraintType end
 
 struct StateofChargeLimitsConstraint <: ISOPT.ConstraintType end
 
+struct StateofChargeTargetConstraint <: ISOPT.ConstraintType end
+
+struct InitialStateOfChargeConstraint <: ISOPT.ConstraintType end
+
 struct SingleRegionBalanceFeasibilityConstraint <: ISOPT.ConstraintType end

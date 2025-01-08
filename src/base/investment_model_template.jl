@@ -106,3 +106,18 @@ function set_technology_model!(
     _set_model!(template.branch_models, names, model)
     return
 end
+
+function metadata_string(
+    model::TechnologyModel{T, B, C, D},
+) where {
+    T <: PSIP.Technology,
+    B <: InvestmentTechnologyFormulation,
+    C <: BasicDispatch,
+    D <: FeasibilityTechnologyFormulation,
+}
+    inv = IS.strip_module_name(B)
+    ops = IS.strip_module_name(C)
+    fes = IS.strip_module_name(D)
+
+    return string(inv, ops, fes)
+end
